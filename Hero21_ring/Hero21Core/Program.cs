@@ -1,4 +1,4 @@
-﻿#define DEBUG
+﻿//#define DEBUG
 
 using System;
 using System.Threading;
@@ -23,7 +23,7 @@ namespace Hero21Core
             // DO ALL THE INITIALIZATION STUFF HERE!
             SerialCom.InitializeSerialCom();
             RoboticArm.InitializeRoboticArmSys();
-
+            
             // For ring buffer implementation
             byte[] scratch = new byte[1];
 
@@ -46,40 +46,26 @@ namespace Hero21Core
                         SerialCom.PushByte(SerialCom._rx[i]);
                     }
                 }
-                /* if there are bufferd bytes echo them back out */
+
                 if (SerialCom._txCnt > 0)
                 {
                     scratch[0] = SerialCom.PopByte();
-                    //TODO: Read byte by byt
                     SerialCom.ReadCommand(scratch[0]);
 
                     if (SerialCom.assignCommands == true)
                     {
+                        SerialCom.CheckMsgContinuity();
                         SerialCom.AssignArmCommands();
-                        //TODO: Set talon commands
-
-                        string[] testDebug = new string[RoboticArm.armMotorNum];
-                        for (int i = 0; i < 7; i++)
-                        {
-                            RoboticArm.armPositionCommands[i] = (int) SerialCom.armCommandsArray[i];
-                        }
+                        RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
                         RoboticArm.SetPositionCommand();
-                        
-
-
-                        // DEBUGGING
-                        
-                        testDebug[0] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[0], 1);
-                        testDebug[1] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[1], 1);
-                        testDebug[2] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[2], 1);
-                        testDebug[3] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[3], 1);
-                        testDebug[4] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[4], 1);
-                        testDebug[5] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[5], 1);
-
-                        Debug.Print("Commands: " + testDebug[0] + testDebug[1] + testDebug[2] + testDebug[3] + testDebug[4] + testDebug[5]);
-
                         SerialCom.assignCommands = false;
                     }
+                }
+
+                if (SerialCom.CheckSerialErrCnt() == false)
+                {
+                    // EMERGENCY STOP CONDITION
+                    RoboticArm.StopArmActuators();
                 }
 
                 System.Threading.Thread.Sleep(10);

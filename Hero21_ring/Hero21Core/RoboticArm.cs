@@ -35,11 +35,11 @@ namespace Hero21Core
 
         /* 
          * These mapping coefficients are used to convert encoder ticks into meaningful integers
-         * 
+         * {999 / 4032, 999 / 700 ...}
          * CAUTION: If you are getting the encoder values --> multiply sensor values with this array
          *          If you are setting position commands as encoder ticks --> divide the commands using this array
          */
-        private static double[] armMappingCoefs = { 999 / 4032, 999 / 700, 999 / 600, 999 / 24576, 999 / 24576, 999 / 49152, 360 * 5 / 4096 };
+        private static double[] armMappingCoefs = { 0.24776786, 1.42714286, 1.665, 0.04065941, 0.04065941, 0.20324707, 0.43945312 };
 
         /*
          * This function factory defaults all talons to prevent unexpected behaviour. It is used to initialize the robotic arm talons
@@ -114,7 +114,7 @@ namespace Hero21Core
         }
 
         /*
-         * This function sets the sensor phases. It is used to initialize the robotic arm talons and sesnors.
+         * This function sets the sensor phases. It is used to initialize the robotic arm talons and sensors.
          */
         public static void SetEncoderPhases()
         {
@@ -180,15 +180,29 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            //TODO: There is an issue about mapping coefficients -> declare a new array called 'armRemappingCoefs'
-            armAxis1.Set(ControlMode.Position, (int)(armPositionCommands[0] * 4032 / 999));
+            armAxis1.Set(ControlMode.Position, ((int)(armPositionCommands[0] / armMappingCoefs[0])));
             armAxis2.Set(ControlMode.Position, ((int)(armPositionCommands[1] / armMappingCoefs[1])));
-            armAxis3.Set(ControlMode.Position, (int)(armPositionCommands[2] * 600 / 999));
-            armAxis4.Set(ControlMode.Position, (int)(armPositionCommands[3] * 24576 / 999));            
-            armAxis5.Set(ControlMode.Position, (int)(armPositionCommands[4] * 24576 / 999));
-            armAxis6.Set(ControlMode.Position, (int)(armPositionCommands[5] * 49152 / 999));
+            armAxis3.Set(ControlMode.Position, ((int)(armPositionCommands[2] / armMappingCoefs[2])));
+            armAxis4.Set(ControlMode.Position, ((int)(armPositionCommands[3] / armMappingCoefs[3])));            
+            armAxis5.Set(ControlMode.Position, ((int)(armPositionCommands[4] / armMappingCoefs[4])));
+            armAxis6.Set(ControlMode.Position, ((int)(armPositionCommands[5] / armMappingCoefs[5])));
             Watchdog.Feed();
             //armGripper.Set(ControlMode.Position, (int)(armPositionCommands[6] / armMappingCoefs[6]));
+        }
+
+        /*
+         * This function stops all the actuators by sending 0 voltage commands. 
+         * This function should be called when a termination of the movement is desired
+         */
+        public static void StopArmActuators()
+        {
+            armAxis1.Set(ControlMode.PercentOutput, 0);
+            armAxis2.Set(ControlMode.PercentOutput, 0);
+            armAxis3.Set(ControlMode.PercentOutput, 0);
+            armAxis4.Set(ControlMode.PercentOutput, 0);
+            armAxis5.Set(ControlMode.PercentOutput, 0);
+            armAxis6.Set(ControlMode.PercentOutput, 0);
+            Watchdog.Feed();
         }
 
         /*
@@ -246,6 +260,17 @@ namespace Hero21Core
             Watchdog.Feed();
             int mappedPosition = (int)(encoderTicks * armMappingCoefs[sensorIndex]);
             return mappedPosition;
+        }
+
+        /*
+         * This function updates current position commmands with the new ones (passed as an argument)
+         */
+        public static void UpdatePositionCommands(int[] newCommands)
+        {
+            for (int i = 0; i < armMotorNum; i++)
+            {
+                armPositionCommands[i] = newCommands[i];
+            }
         }
     }
 }

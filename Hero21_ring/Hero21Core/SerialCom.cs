@@ -23,11 +23,18 @@ namespace Hero21Core
 
         private static int receiveCounter = 0;
         private static bool receiveFlag = false;
-        private static int[] incomingData = new int[24];    // 24 is arbitrarily given
+        private static int[] incomingData = new int[25];    // 25 is arbitrarily given (24 + 1)
         public static bool assignCommands = false;
+        public static bool commCheck = true;
+        private static int checkCurr = 0;
+        private static int checkPrev = 1;
+
+        private static int serialErrCounter = 0;
+        private static int serialErrCounterTreshold = 3000;    
 
         private static int armMsgLen = 24;                  // string length of arm msgs
         private static int strPieceLen = 4;                 // string length of each motor info
+        private static int commCheckByteIdx = armMsgLen;     // steering will be added
 
         public static int[] armCommandsArray = new int[RoboticArm.armMotorNum];
         //public static int[] steeringCommandsArray = new int[SteeringSys.armMotorNum];
@@ -134,6 +141,7 @@ namespace Hero21Core
          * This function is called whenever a byte in circular buffer is poppin out.
          * It processes the incoming byte (as ascii chars) and raises a flag after a whole msg is received.
          * TODO: Double check communication safety
+         * TODO: Communication control byte will be included
          */
         public static void ReadCommand(byte incomingASCII)
         {
@@ -152,7 +160,6 @@ namespace Hero21Core
                 receiveCounter = 0;
                 receiveFlag = false;
                 assignCommands = true;
-                //TODO: add a new flag to parse incoming data
             }
 
         }
@@ -163,6 +170,42 @@ namespace Hero21Core
             {
                 armCommandsArray[j] = (incomingData[i] == 1 ? 1 : -1) * (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]); 
             }
+        }
+
+        /*
+         * This function is used to check if the incoming serial message is continuously updating
+         * Last byte of the serial message changes with each message. If that is the case for receiver, a continuous stream is happening
+         * If any match is detected, the commCheck changed to be 'false' to inform the program that high level controller is always sending the same message which is an error
+         * Also it increments or resets the error counter
+         */
+        public static void CheckMsgContinuity()
+        {
+            checkCurr = incomingData[commCheckByteIdx];
+            if (checkCurr != checkPrev)
+            {
+                commCheck = true;
+                serialErrCounter = 0;
+            }
+            else
+            {
+                commCheck = false;
+                serialErrCounter = serialErrCounter + 1;
+            }
+            checkPrev = checkCurr;
+        }
+
+        /*
+         * This function checks if 'serialErrCounter' is below or above 'serialErrCountertreshold'
+         * Serial counter is incremented by one if any discontinuity is detected in the serial message.
+         * It is being set to zero if the incoming message is continuously updating
+         * 'serialErrCounterTreshold' is the variable that determines how many errors are expandable
+         */
+        public static bool CheckSerialErrCnt()
+        {
+            if (serialErrCounter < serialErrCounterTreshold)
+                return true;
+            else
+                return false;
         }
 
     }
