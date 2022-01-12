@@ -30,6 +30,7 @@ namespace Hero21Core
             while (true)
             {
                 Watchdog.Feed();
+                SerialCom.IncreaseNoMsgCounter();
 
                 // GET THE SENSOR DATA AND TRANSMIT IT TO THE HIGH LEVEL CONTROLLER HERE!
                 if (SerialCom._uart.CanWrite)
@@ -62,7 +63,7 @@ namespace Hero21Core
                     }
                 }
 
-                if (SerialCom.CheckSerialErrCnt() == false)
+                if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
                 {
                     // EMERGENCY STOP CONDITION
                     RoboticArm.StopArmActuators();

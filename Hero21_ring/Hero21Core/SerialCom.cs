@@ -30,7 +30,10 @@ namespace Hero21Core
         private static int checkPrev = 1;
 
         private static int serialErrCounter = 0;
-        private static int serialErrCounterTreshold = 3000;    
+        private static int serialErrCounterTreshold = 25;
+        private static int noNewMsgCounter = 0;             // it increases when there is no new msg, reset if new msg is available
+        private static int noNewMsgCounterTresh = 300;
+        //TODO: If no new messages are coming, stop the motors
 
         private static int armMsgLen = 24;                  // string length of arm msgs
         private static int strPieceLen = 4;                 // string length of each motor info
@@ -94,11 +97,7 @@ namespace Hero21Core
         {
             armFeedbackMsg = RoboticArm.GetArmFeedback();
             //TODO: Get steering system Feedback string
-
             finalFeedbackMsg = "A" + armFeedbackMsg + steeringFeedbackMsg + "B";
-
-            //Debug.Print(finalFeedbackMsg);
-
             Write(finalFeedbackMsg);
 
         }
@@ -158,6 +157,8 @@ namespace Hero21Core
             if (receiveFlag == true && incomingASCII == 70)                             // 'F' check -> finish condition
             {
                 receiveCounter = 0;
+                noNewMsgCounter = 0;                                                    // Reset since new msg is available
+                Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
                 assignCommands = true;
             }
@@ -203,6 +204,27 @@ namespace Hero21Core
         public static bool CheckSerialErrCnt()
         {
             if (serialErrCounter < serialErrCounterTreshold)
+                return true;
+            else
+                return false;
+        }
+
+        /*
+         * This function increases noNewMsgCounter by 1 if no new message has arrived yet. This value resets
+         * in the ReadCommand() method
+         */
+        public static void IncreaseNoMsgCounter()
+        {
+            noNewMsgCounter = noNewMsgCounter + 1;
+        }
+
+        /*
+         * This function checks if 'noNewMsgCounter' is below or above 'serialErrCountertreshold'
+         * TODO: CheckNoMsgCnt and CheckSerialErrCnt might be merged
+         */
+        public static bool CheckNoMsgCnt()
+        {
+            if (noNewMsgCounter < noNewMsgCounterTresh)
                 return true;
             else
                 return false;
