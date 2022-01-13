@@ -25,7 +25,7 @@ namespace Hero21Core
 
         public const int timeOutMs = 30;
 
-        public static int armMotorNum = 7; // Including gripper
+        public static int armMotorNum = 6; // Including gripper
 
         public static int armMode = 0;
         // 0 -> position command, 1 -> velocity command ...
@@ -170,7 +170,7 @@ namespace Hero21Core
             SetAxisSpecificParams();
             SetEncoderPhases();
             SelectTalonsProfileSlots();
-            ResetArmSensors();
+            //ResetArmSensors();
         }
 
         /*
@@ -223,28 +223,35 @@ namespace Hero21Core
             string[] encoderStr = new string[6];
 
             encoderData[0] = armAxis1.GetSelectedSensorPosition();
+            encoderData[0] = GetMappedSensorPosition(encoderData[0],0);
             encoderStr[0] = SerialCom.ConvertIntToSerialPiece(encoderData[0], 1);
             Watchdog.Feed();
 
             encoderData[1] = armAxis2.GetSelectedSensorPosition();
+            encoderData[1] = GetMappedSensorPosition(encoderData[1], 1);
             encoderStr[1] = SerialCom.ConvertIntToSerialPiece(encoderData[1], 1);
             Watchdog.Feed();
 
             encoderData[2] = armAxis3.GetSelectedSensorPosition();
+            encoderData[2] = GetMappedSensorPosition(encoderData[2], 2);
             encoderStr[2] = SerialCom.ConvertIntToSerialPiece(encoderData[2], 1);
             Watchdog.Feed();
 
             encoderData[3] = armAxis4.GetSelectedSensorPosition();
+            encoderData[3] = GetMappedSensorPosition(encoderData[3], 3);
             encoderStr[3] = SerialCom.ConvertIntToSerialPiece(encoderData[3], 1);
             Watchdog.Feed();
 
             encoderData[4] = armAxis5.GetSelectedSensorPosition();
+            encoderData[4] = GetMappedSensorPosition(encoderData[4], 4);
             encoderStr[4] = SerialCom.ConvertIntToSerialPiece(encoderData[4], 1);
             Watchdog.Feed();
 
             encoderData[5] = armAxis6.GetSelectedSensorPosition();
+            encoderData[5] = GetMappedSensorPosition(encoderData[5], 5);
             encoderStr[5] = SerialCom.ConvertIntToSerialPiece(encoderData[5], 1);
             Watchdog.Feed();
+
 
             armFeedback = encoderStr[0] + encoderStr[1] + encoderStr[2] + encoderStr[3] + encoderStr[4] + encoderStr[5];
 

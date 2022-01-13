@@ -32,12 +32,12 @@ namespace Hero21Core
         private static int serialErrCounter = 0;
         private static int serialErrCounterTreshold = 25;
         private static int noNewMsgCounter = 0;             // it increases when there is no new msg, reset if new msg is available
-        private static int noNewMsgCounterTresh = 300;
+        private static int noNewMsgCounterTresh = 50;
         //TODO: If no new messages are coming, stop the motors
 
         private static int armMsgLen = 24;                  // string length of arm msgs
         private static int strPieceLen = 4;                 // string length of each motor info
-        private static int commCheckByteIdx = armMsgLen;     // steering will be added
+        private static int commCheckByteIdx = armMsgLen;    // steering will be added
 
         public static int[] armCommandsArray = new int[RoboticArm.armMotorNum];
         //public static int[] steeringCommandsArray = new int[SteeringSys.armMotorNum];
@@ -158,7 +158,7 @@ namespace Hero21Core
             {
                 receiveCounter = 0;
                 noNewMsgCounter = 0;                                                    // Reset since new msg is available
-                Debug.Print("No new msg counter reset!");
+                //Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
                 assignCommands = true;
             }
@@ -167,10 +167,13 @@ namespace Hero21Core
 
         public static void AssignArmCommands()
         {
+ 
             for (int i = 0, j = 0; i < armMsgLen; i += strPieceLen, j++)
             {
-                armCommandsArray[j] = (incomingData[i] == 1 ? 1 : -1) * (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]); 
+                armCommandsArray[j] = (incomingData[i] == 1 ? 1 : -1) * (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]);
+                
             }
+            
         }
 
         /*

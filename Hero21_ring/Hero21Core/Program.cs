@@ -44,32 +44,66 @@ namespace Hero21Core
                     int readCnt = SerialCom._uart.Read(SerialCom._rx, 0, SerialCom.CalcRemainingCap());
                     for (int i = 0; i < readCnt; ++i)
                     {
-                        SerialCom.PushByte(SerialCom._rx[i]);
+                        //SerialCom.PushByte(SerialCom._rx[i]);
+                        SerialCom.ReadCommand(SerialCom._rx[i]);
+
+                        if (SerialCom.assignCommands == true)
+                        {
+                            string[] testDebug = new string[RoboticArm.armMotorNum];
+
+                            SerialCom.CheckMsgContinuity();
+                            SerialCom.AssignArmCommands();
+                            RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
+                            RoboticArm.SetPositionCommand();
+                            SerialCom.assignCommands = false;
+
+                            testDebug[0] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[0], 1);
+                            testDebug[1] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[1], 1);
+                            testDebug[2] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[2], 1);
+                            testDebug[3] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[3], 1);
+                            testDebug[4] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[4], 1);
+                            testDebug[5] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[5], 1);
+
+                            Debug.Print("Commands: " + testDebug[0] + testDebug[1] + testDebug[2] + testDebug[3] + testDebug[4] + testDebug[5]);
+
+                        }
+                    }
+                    if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
+                    {
+                        // EMERGENCY STOP CONDITION
+                        RoboticArm.StopArmActuators();
+                        Debug.Print("EMERGENCY STOP");
                     }
                 }
 
                 if (SerialCom._txCnt > 0)
                 {
                     scratch[0] = SerialCom.PopByte();
+
+                    /*
                     SerialCom.ReadCommand(scratch[0]);
 
                     if (SerialCom.assignCommands == true)
                     {
-                        SerialCom.CheckMsgContinuity();
+                        //SerialCom.CheckMsgContinuity();
                         SerialCom.AssignArmCommands();
                         RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
                         RoboticArm.SetPositionCommand();
                         SerialCom.assignCommands = false;
                     }
+                    */
                 }
 
+                /*
                 if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
                 {
                     // EMERGENCY STOP CONDITION
                     RoboticArm.StopArmActuators();
+                    Debug.Print("EMERGENCY STOP");
                 }
 
                 System.Threading.Thread.Sleep(10);
+                */
 
 #if DEBUG
                 // CALL ALL THE DEBUG METHODS IF YOU WANT TO DEBUG FROM A CONSOLE
