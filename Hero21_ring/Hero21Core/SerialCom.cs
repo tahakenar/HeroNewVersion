@@ -13,7 +13,7 @@ namespace Hero21Core
 {
     class SerialCom
     {
-        public static System.IO.Ports.SerialPort _uart = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port1.UART, 115200);
+        public static System.IO.Ports.SerialPort _uart = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port1.UART, 57600);
         public static byte[] _rx = new byte[1024];
         static byte[] _tx = new byte[1024];
         public static int _txIn = 0;
@@ -23,7 +23,7 @@ namespace Hero21Core
 
         private static int receiveCounter = 0;
         private static bool receiveFlag = false;
-        private static int[] incomingData = new int[25];    // 25 is arbitrarily given (24 + 1)
+        private static int[] incomingData = new int[30];    // 30 is arbitrarily given (24 + 1)
         public static bool assignCommands = false;
         public static bool commCheck = true;
         private static int checkCurr = 0;
@@ -32,7 +32,7 @@ namespace Hero21Core
         private static int serialErrCounter = 0;
         private static int serialErrCounterTreshold = 25;
         private static int noNewMsgCounter = 0;             // it increases when there is no new msg, reset if new msg is available
-        private static int noNewMsgCounterTresh = 50;
+        private static int noNewMsgCounterTresh = 30;
         //TODO: If no new messages are coming, stop the motors
 
         private static int armMsgLen = 24;                  // string length of arm msgs
@@ -148,13 +148,14 @@ namespace Hero21Core
             {
                 receiveFlag = true;
                 receiveCounter = 0;
+                Debug.Print("S");
             }
             if (receiveFlag == true && incomingASCII != 83 && incomingASCII != 70)      // If not 'S' and 'F'
             {
                 incomingData[receiveCounter] = (incomingASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
-            if (receiveFlag == true && incomingASCII == 70)                             // 'F' check -> finish condition
+            if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)                             // 'F' check -> finish condition
             {
                 receiveCounter = 0;
                 noNewMsgCounter = 0;                                                    // Reset since new msg is available

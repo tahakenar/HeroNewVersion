@@ -15,13 +15,13 @@ namespace Hero21Core
     class RoboticArm
     {
         // Robotic arm motor drivers
-        public static TalonSRX armAxis1 = new TalonSRX(13);
-        public static TalonSRX armAxis2 = new TalonSRX(6);
-        public static TalonSRX armAxis3 = new TalonSRX(7);
-        public static TalonSRX armAxis4 = new TalonSRX(8);
-        public static TalonSRX armAxis5 = new TalonSRX(9);
-        public static TalonSRX armAxis6 = new TalonSRX(10);
-        //private static TalonSRX armGripper = new TalonSRX(11);
+        public static TalonSRX armAxis1 = new TalonSRX(1);
+        public static TalonSRX armAxis2 = new TalonSRX(2);
+        public static TalonSRX armAxis3 = new TalonSRX(3);
+        public static TalonSRX armAxis4 = new TalonSRX(4);
+        public static TalonSRX armAxis5 = new TalonSRX(5);
+        public static TalonSRX armAxis6 = new TalonSRX(6);
+        //private static TalonSRX armGripper = new TalonSRX(7);
 
         public const int timeOutMs = 30;
 
@@ -63,9 +63,9 @@ namespace Hero21Core
          */
         public static void ConfigureEncoders()
         {
-            armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
-            armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
-            armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
+            armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
+            armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
+            armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
             armAxis4.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);        
             armAxis5.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);            
             armAxis6.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
@@ -81,34 +81,30 @@ namespace Hero21Core
         public static void SetAxisSpecificParams()
         {
             // AXIS 1
-            armAxis1.ConfigClosedloopRamp(3.41f, timeOutMs);
-            armAxis1.ConfigPeakOutputForward(0.3f, timeOutMs);
-            armAxis1.ConfigPeakOutputReverse(-0.3f, timeOutMs);
-            armAxis1.Config_kP(0, 1.2f, timeOutMs);
-            armAxis1.Config_kD(0, 100, timeOutMs);
-            armAxis1.ConfigAllowableClosedloopError(0, 40, timeOutMs);
-            
+            armAxis1.Config_kP(0, 40f, timeOutMs);
+            armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
+            armAxis1.ConfigAllowableClosedloopError(0, 5, timeOutMs);
+     
             // AXIS 2
-            armAxis2.Config_kP(0, 30f, timeOutMs);
-            armAxis2.ConfigAllowableClosedloopError(0, 20, timeOutMs);
+            armAxis2.Config_kP(0, 80f, timeOutMs);
+            armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
+            armAxis2.ConfigAllowableClosedloopError(0, 8, timeOutMs);
 
             // AXIS 3
-            armAxis3.Config_kP(0, 30f, timeOutMs);
-            armAxis3.ConfigAllowableClosedloopError(0, 20, timeOutMs);
+            armAxis3.Config_kP(0, 20f, timeOutMs);
+            armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
 
             // AXIS 4
-            armAxis4.Config_kP(0, 2f, timeOutMs);
-            armAxis4.ConfigAllowableClosedloopError(0, 200, timeOutMs);
+            armAxis4.Config_kP(0, 10f, timeOutMs);
+            armAxis4.ConfigAllowableClosedloopError(0, 20, timeOutMs);
 
             // AXIS 5
-            armAxis5.Config_kP(0, 1f, timeOutMs);
-            armAxis5.ConfigAllowableClosedloopError(0, 200, timeOutMs);
+            armAxis5.Config_kP(0, 10f, timeOutMs);
+            armAxis5.ConfigAllowableClosedloopError(0, 20, timeOutMs);
 
             // AXIS 6
-            armAxis6.Config_kP(0, 2f, timeOutMs);
-            armAxis6.ConfigPeakOutputForward(0.5f, timeOutMs);
-            armAxis6.ConfigPeakOutputReverse(-0.5f, timeOutMs);
-            armAxis6.ConfigAllowableClosedloopError(0, 200, timeOutMs);
+            armAxis6.Config_kP(0, 10f, timeOutMs);
+            armAxis6.ConfigAllowableClosedloopError(0, 20, timeOutMs);
             Watchdog.Feed();
             
         }
@@ -118,13 +114,20 @@ namespace Hero21Core
          */
         public static void SetEncoderPhases()
         {
-            armAxis1.SetSensorPhase(true);            
-            armAxis2.SetSensorPhase(false);            
+            armAxis1.SetSensorPhase(false);            
+            armAxis2.SetSensorPhase(true);            
             armAxis3.SetSensorPhase(true);           
-            armAxis4.SetSensorPhase(false);            
-            armAxis5.SetSensorPhase(false);
-            armAxis6.SetSensorPhase(false);
+            armAxis4.SetSensorPhase(true);            
+            armAxis5.SetSensorPhase(true);
+            armAxis6.SetSensorPhase(true);
             //armGripper.SetSensorPhase(true);            
+            Watchdog.Feed();
+
+            armAxis2.SetInverted(true);
+            armAxis3.SetInverted(true);
+            armAxis4.SetInverted(true);
+            armAxis5.SetInverted(true);
+            armAxis6.SetInverted(true);
             Watchdog.Feed();
         }
 
@@ -149,9 +152,9 @@ namespace Hero21Core
          */
         public static void ResetArmSensors()
         {
-            armAxis1.SetSelectedSensorPosition(0);
-            armAxis2.SetSelectedSensorPosition(0);           
-            armAxis3.SetSelectedSensorPosition(0);            
+            armAxis1.SetSelectedSensorPosition(2048);
+            armAxis2.SetSelectedSensorPosition(1024);           
+            armAxis3.SetSelectedSensorPosition(1024);            
             armAxis4.SetSelectedSensorPosition(0);            
             armAxis5.SetSelectedSensorPosition(0);
             armAxis6.SetSelectedSensorPosition(0);
@@ -180,12 +183,12 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            armAxis1.Set(ControlMode.Position, ((int)(armPositionCommands[0] / armMappingCoefs[0])));
-            armAxis2.Set(ControlMode.Position, ((int)(armPositionCommands[1] / armMappingCoefs[1])));
-            armAxis3.Set(ControlMode.Position, ((int)(armPositionCommands[2] / armMappingCoefs[2])));
-            armAxis4.Set(ControlMode.Position, ((int)(armPositionCommands[3] / armMappingCoefs[3])));            
-            armAxis5.Set(ControlMode.Position, ((int)(armPositionCommands[4] / armMappingCoefs[4])));
-            armAxis6.Set(ControlMode.Position, ((int)(armPositionCommands[5] / armMappingCoefs[5])));
+            armAxis1.Set(ControlMode.Position, ((int)((armPositionCommands[0] / 999) * 2048 + 2048)));
+            armAxis2.Set(ControlMode.Position, ((int)((armPositionCommands[1] / 999) * 768 + 768)));
+            armAxis3.Set(ControlMode.Position, ((int)((armPositionCommands[2] / 999) * 768 + 1024 + 768)));
+            armAxis4.Set(ControlMode.Position, ((int)(armPositionCommands[3] * 81920 / 999)));            
+            armAxis5.Set(ControlMode.Position, ((int)(armPositionCommands[4] * 20480 / 999)));
+            armAxis6.Set(ControlMode.Position, ((int)(armPositionCommands[5] * 81920 / 999)));
             Watchdog.Feed();
             //armGripper.Set(ControlMode.Position, (int)(armPositionCommands[6] / armMappingCoefs[6]));
         }

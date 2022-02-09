@@ -42,11 +42,11 @@ namespace Hero21Core
                 if (SerialCom._uart.BytesToRead > 0)
                 {
                     int readCnt = SerialCom._uart.Read(SerialCom._rx, 0, SerialCom.CalcRemainingCap());
+      
                     for (int i = 0; i < readCnt; ++i)
                     {
-                        //SerialCom.PushByte(SerialCom._rx[i]);
-                        SerialCom.ReadCommand(SerialCom._rx[i]);
 
+                        SerialCom.ReadCommand(SerialCom._rx[i]);
                         if (SerialCom.assignCommands == true)
                         {
                             string[] testDebug = new string[RoboticArm.armMotorNum];
@@ -68,6 +68,7 @@ namespace Hero21Core
 
                         }
                     }
+ 
                     if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
                     {
                         // EMERGENCY STOP CONDITION
@@ -79,31 +80,8 @@ namespace Hero21Core
                 if (SerialCom._txCnt > 0)
                 {
                     scratch[0] = SerialCom.PopByte();
-
-                    /*
-                    SerialCom.ReadCommand(scratch[0]);
-
-                    if (SerialCom.assignCommands == true)
-                    {
-                        //SerialCom.CheckMsgContinuity();
-                        SerialCom.AssignArmCommands();
-                        RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
-                        RoboticArm.SetPositionCommand();
-                        SerialCom.assignCommands = false;
-                    }
-                    */
                 }
 
-                /*
-                if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
-                {
-                    // EMERGENCY STOP CONDITION
-                    RoboticArm.StopArmActuators();
-                    Debug.Print("EMERGENCY STOP");
-                }
-
-                System.Threading.Thread.Sleep(10);
-                */
 
 #if DEBUG
                 // CALL ALL THE DEBUG METHODS IF YOU WANT TO DEBUG FROM A CONSOLE
