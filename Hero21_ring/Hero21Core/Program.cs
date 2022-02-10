@@ -31,7 +31,6 @@ namespace Hero21Core
             {
                 Watchdog.Feed();
                 SerialCom.IncreaseNoMsgCounter();
-
                 // GET THE SENSOR DATA AND TRANSMIT IT TO THE HIGH LEVEL CONTROLLER HERE!
                 if (SerialCom._uart.CanWrite)
                 {

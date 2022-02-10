@@ -45,7 +45,7 @@ namespace Hero21Core
          * This function factory defaults all talons to prevent unexpected behaviour. It is used to initialize the robotic arm talons
          */
         public static void SetFactoryDefault()
-        {
+        { 
             armAxis1.ConfigFactoryDefault();
             armAxis2.ConfigFactoryDefault();
             armAxis3.ConfigFactoryDefault();           
@@ -63,9 +63,18 @@ namespace Hero21Core
          */
         public static void ConfigureEncoders()
         {
-            armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
-            armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
-            armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, timeOutMs);
+            armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
+            armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
+            armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
+
+            //// Seed quadrature positions using pwm feedback
+            //armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
+            //armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
+            //armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
+            //armAxis1.SetSelectedSensorPosition(armAxis1.GetSelectedSensorPosition(1));
+            //armAxis2.SetSelectedSensorPosition(armAxis2.GetSelectedSensorPosition(1));
+            //armAxis3.SetSelectedSensorPosition(armAxis3.GetSelectedSensorPosition(1));
+
             armAxis4.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);        
             armAxis5.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);            
             armAxis6.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
@@ -92,6 +101,7 @@ namespace Hero21Core
 
             // AXIS 3
             armAxis3.Config_kP(0, 20f, timeOutMs);
+            armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
             armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
 
             // AXIS 4
@@ -122,7 +132,7 @@ namespace Hero21Core
             armAxis6.SetSensorPhase(true);
             //armGripper.SetSensorPhase(true);            
             Watchdog.Feed();
-
+            armAxis2.SetInverted(false);
             armAxis2.SetInverted(true);
             armAxis3.SetInverted(true);
             armAxis4.SetInverted(true);
@@ -152,9 +162,9 @@ namespace Hero21Core
          */
         public static void ResetArmSensors()
         {
-            armAxis1.SetSelectedSensorPosition(2048);
-            armAxis2.SetSelectedSensorPosition(1024);           
-            armAxis3.SetSelectedSensorPosition(1024);            
+            armAxis1.SetSelectedSensorPosition(0);
+            armAxis2.SetSelectedSensorPosition(0);           
+            armAxis3.SetSelectedSensorPosition(0);            
             armAxis4.SetSelectedSensorPosition(0);            
             armAxis5.SetSelectedSensorPosition(0);
             armAxis6.SetSelectedSensorPosition(0);
@@ -183,12 +193,12 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            armAxis1.Set(ControlMode.Position, ((int)((armPositionCommands[0] / 999) * 2048 + 2048)));
-            armAxis2.Set(ControlMode.Position, ((int)((armPositionCommands[1] / 999) * 768 + 768)));
-            armAxis3.Set(ControlMode.Position, ((int)((armPositionCommands[2] / 999) * 768 + 1024 + 768)));
-            armAxis4.Set(ControlMode.Position, ((int)(armPositionCommands[3] * 81920 / 999)));            
-            armAxis5.Set(ControlMode.Position, ((int)(armPositionCommands[4] * 20480 / 999)));
-            armAxis6.Set(ControlMode.Position, ((int)(armPositionCommands[5] * 81920 / 999)));
+            armAxis1.Set(ControlMode.Position, ((int)((armPositionCommands[0] / 999) * 4096)));
+            armAxis2.Set(ControlMode.Position, ((int)((armPositionCommands[1] / 999) * 1024)));
+            armAxis3.Set(ControlMode.Position, ((int)(350 + (armPositionCommands[2] / 999) * 350)));
+            armAxis4.Set(ControlMode.Position, ((int)((armPositionCommands[3] / 999) * 81920)));            
+            armAxis5.Set(ControlMode.Position, ((int)((armPositionCommands[4] / 999) * 20480)));
+            armAxis6.Set(ControlMode.Position, ((int)((armPositionCommands[5] / 999) * 81920)));
             Watchdog.Feed();
             //armGripper.Set(ControlMode.Position, (int)(armPositionCommands[6] / armMappingCoefs[6]));
         }
