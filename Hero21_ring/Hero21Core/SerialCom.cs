@@ -13,7 +13,7 @@ namespace Hero21Core
 {
     class SerialCom
     {
-        public static System.IO.Ports.SerialPort _uart = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port1.UART, 57600);
+        public static System.IO.Ports.SerialPort _uart = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port1.UART, 115200);
         public static byte[] _rx = new byte[1024];
         static byte[] _tx = new byte[1024];
         public static int _txIn = 0;
