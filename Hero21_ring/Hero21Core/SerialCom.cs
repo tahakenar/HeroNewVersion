@@ -155,7 +155,7 @@ namespace Hero21Core
                 incomingData[receiveCounter] = (incomingASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
-            if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)                             // 'F' check -> finish condition
+            if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)   // 'F' check -> finish condition
             {
                 receiveCounter = 0;
                 noNewMsgCounter = 0;                                                    // Reset since new msg is available
@@ -171,7 +171,7 @@ namespace Hero21Core
  
             for (int i = 0, j = 0; i < armMsgLen; i += strPieceLen, j++)
             {
-                armCommandsArray[j] = (incomingData[i] == 1 ? 1 : -1) * (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]);
+                armCommandsArray[j] = (incomingData[i] * 1000) + (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]);
                 
             }
             

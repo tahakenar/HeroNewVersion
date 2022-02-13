@@ -45,12 +45,12 @@ namespace Hero21Core
                     for (int i = 0; i < readCnt; ++i)
                     {
 
-                        SerialCom.ReadCommand(SerialCom._rx[i]);
+                        SerialCom.ReadCommand(SerialCom._rx[i]);                   
                         if (SerialCom.assignCommands == true)
                         {
                             string[] testDebug = new string[RoboticArm.armMotorNum];
 
-                            SerialCom.CheckMsgContinuity();
+                            //SerialCom.CheckMsgContinuity();
                             SerialCom.AssignArmCommands();
                             RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
                             RoboticArm.SetPositionCommand();
@@ -68,23 +68,20 @@ namespace Hero21Core
                         }
                     }
  
+                       /*
                     if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
                     {
                         // EMERGENCY STOP CONDITION
                         RoboticArm.StopArmActuators();
                         Debug.Print("EMERGENCY STOP");
                     }
+                       */
                 }
 
                 if (SerialCom._txCnt > 0)
                 {
                     scratch[0] = SerialCom.PopByte();
                 }
-
-
-#if DEBUG
-                // CALL ALL THE DEBUG METHODS IF YOU WANT TO DEBUG FROM A CONSOLE
-#endif
 
             }
         }

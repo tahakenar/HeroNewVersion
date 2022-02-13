@@ -30,8 +30,10 @@ namespace Hero21Core
         public static int armMode = 0;
         // 0 -> position command, 1 -> velocity command ...
 
-        public static double[] armPositionCommands = new double[armMotorNum];
-        public static double[] armVelocityCommands = new double[armMotorNum];
+
+        public static int[] armHomePositions = {2048, 1024, 0, 81920, 20480, 81920 };
+        public static int[] armPositionCommands = new int[armMotorNum];
+        public static int[] armEffortCommands = new int[armMotorNum];
 
         /* 
          * These mapping coefficients are used to convert encoder ticks into meaningful integers
@@ -162,13 +164,12 @@ namespace Hero21Core
          */
         public static void ResetArmSensors()
         {
-            armAxis1.SetSelectedSensorPosition(0);
-            armAxis2.SetSelectedSensorPosition(0);           
-            armAxis3.SetSelectedSensorPosition(0);            
-            armAxis4.SetSelectedSensorPosition(0);            
-            armAxis5.SetSelectedSensorPosition(0);
-            armAxis6.SetSelectedSensorPosition(0);
-            //armGripper.SetSelectedSensorPosition(0);
+            armAxis1.SetSelectedSensorPosition(armHomePositions[0]);
+            armAxis2.SetSelectedSensorPosition(armHomePositions[1]);           
+            armAxis3.SetSelectedSensorPosition(armHomePositions[2]);            
+            armAxis4.SetSelectedSensorPosition(armHomePositions[3]);            
+            armAxis5.SetSelectedSensorPosition(armHomePositions[4]);
+            armAxis6.SetSelectedSensorPosition(armHomePositions[5]);
             Watchdog.Feed();
         }
 
@@ -183,7 +184,7 @@ namespace Hero21Core
             SetAxisSpecificParams();
             SetEncoderPhases();
             SelectTalonsProfileSlots();
-            //ResetArmSensors();
+            ResetArmSensors();
         }
 
         /*
@@ -193,14 +194,24 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            armAxis1.Set(ControlMode.Position, ((int)((armPositionCommands[0] / 999) * 4096)));
-            armAxis2.Set(ControlMode.Position, ((int)((armPositionCommands[1] / 999) * 1024)));
-            armAxis3.Set(ControlMode.Position, ((int)(350 + (armPositionCommands[2] / 999) * 350)));
-            armAxis4.Set(ControlMode.Position, ((int)((armPositionCommands[3] / 999) * 81920)));            
-            armAxis5.Set(ControlMode.Position, ((int)((armPositionCommands[4] / 999) * 20480)));
-            armAxis6.Set(ControlMode.Position, ((int)((armPositionCommands[5] / 999) * 81920)));
+            armAxis1.Set(ControlMode.Position, armPositionCommands[0]);
+            armAxis2.Set(ControlMode.Position, armPositionCommands[1]);
+            armAxis3.Set(ControlMode.Position, armPositionCommands[2]);
+            armAxis4.Set(ControlMode.Position, ((int)(((double)armPositionCommands[3] / 9999) * 81920 * 2)));            
+            armAxis5.Set(ControlMode.Position, ((int)(((double)armPositionCommands[4] / 9999) * 20480 * 2)));
+            armAxis6.Set(ControlMode.Position, ((int)(((double)armPositionCommands[5] / 9999) * 81920 * 2)));
             Watchdog.Feed();
             //armGripper.Set(ControlMode.Position, (int)(armPositionCommands[6] / armMappingCoefs[6]));
+        }
+
+        public static void SetEffortCommand()
+        {
+            armAxis1.Set(ControlMode.Position, armEffortCommands[0]);
+            armAxis2.Set(ControlMode.Position, armEffortCommands[1]);
+            armAxis3.Set(ControlMode.Position, armEffortCommands[2]);
+            armAxis4.Set(ControlMode.Position, armEffortCommands[3]);
+            armAxis5.Set(ControlMode.Position, armEffortCommands[4]);
+            armAxis6.Set(ControlMode.Position, armEffortCommands[5]);
         }
 
         /*
@@ -215,26 +226,15 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.PercentOutput, 0);
             armAxis5.Set(ControlMode.PercentOutput, 0);
             armAxis6.Set(ControlMode.PercentOutput, 0);
+
             Watchdog.Feed();
         }
 
-        /*
-         * This function returns robotic arm encoder feedbacks with mapped values as a concatenated string
-         * String feedback has the following pattern
-         * 1 digit direction + 3 digits magnitude for each axis
-         * 4 digits 0000 -> axis 1
-         * 4 digits 0000 -> axis 2
-         * 4 digits 0000 -> axis 3
-         * 4 digits 0000 -> axis 4
-         * 4 digits 0000 -> axis 5
-         * 4 digits 0000 -> axis 6
-         */
         public static string GetArmFeedback()
         {
             string armFeedback;
             int[] encoderData = new int[6];
             string[] encoderStr = new string[6];
-
 
             /*
              * 
@@ -248,44 +248,33 @@ namespace Hero21Core
              */
             encoderData[0] = armAxis1.GetSelectedSensorPosition();
             //encoderStr[0] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[0] * 999 / 4096f), 1);
-            encoderStr[0] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[0] * 999 / 4096f), 1);
+            encoderStr[0] = Clamp(encoderData[0], 0, 4096).ToString("D4");
             Watchdog.Feed();
 
             encoderData[1] = armAxis2.GetSelectedSensorPosition();
-            encoderStr[1] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[1] * 999 / 1024f), 1);
+            encoderStr[1] = Clamp(encoderData[1], 0, 1024 + 512).ToString("D4");
             Watchdog.Feed();
 
             encoderData[2] = armAxis3.GetSelectedSensorPosition();
-            encoderStr[2] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((((double)encoderData[2] / 700f) - 0.5f) * 2 * 999), 1);
+            encoderStr[2] = Clamp(encoderData[2], 0, 1024).ToString("D4");
             Watchdog.Feed();
 
             encoderData[3] = armAxis4.GetSelectedSensorPosition();
-            encoderStr[3] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[3] * 999 / 81920f), 1);
+            encoderStr[3] = Map(Clamp(encoderData[3], 0, 81920 * 2), 0, 81920 * 2, 0, 9999).ToString("D4");
             Watchdog.Feed();
 
             encoderData[4] = armAxis5.GetSelectedSensorPosition();
-            encoderStr[4] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[4] * 999 / 20480f), 1);
+            encoderStr[4] = Map(Clamp(encoderData[4], 0, 20480 * 2), 0, 20480 * 2, 0, 9999).ToString("D4");
             Watchdog.Feed();
 
             encoderData[5] = armAxis6.GetSelectedSensorPosition();
-            encoderStr[5] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[5] * 999 / 81920f), 1);
+            encoderStr[5] = Map(Clamp(encoderData[5], 0, 81920 * 2), 0, 81920 * 2, 0, 9999).ToString("D4");
             Watchdog.Feed();
 
 
             armFeedback = encoderStr[0] + encoderStr[1] + encoderStr[2] + encoderStr[3] + encoderStr[4] + encoderStr[5];
-            Debug.Print(armFeedback);
+            //Debug.Print(armFeedback);
             return armFeedback;
-        }
-
-        /*
-         * This function maps encoder ticks of a sensor into meaningful integer by considering reduction rate of the axes (sensorIndex = axis index)
-         * Meaningful integer: [-999,999] to express radians between [-3.14,3.14]
-         */
-        public static int GetMappedSensorPosition(int encoderTicks, int sensorIndex)
-        {
-            Watchdog.Feed();
-            int mappedPosition = (int)(encoderTicks * armMappingCoefs[sensorIndex]);
-            return mappedPosition;
         }
 
         /*
@@ -299,17 +288,36 @@ namespace Hero21Core
             }
         }
 
+
+        /*
+         * This function returns back the robotic arm to its home position
+         */
+        public static void GoHome()
+        {
+            armAxis1.Set(ControlMode.Position, armHomePositions[0]);
+            armAxis2.Set(ControlMode.Position, armHomePositions[1]);
+            armAxis3.Set(ControlMode.Position, armHomePositions[2]);
+            armAxis4.Set(ControlMode.Position, armHomePositions[3]);
+            armAxis5.Set(ControlMode.Position, armHomePositions[4]);
+            armAxis6.Set(ControlMode.Position, armHomePositions[5]);
+        }
+
         /*
          * This function limits mapped encoder readings to the serial msg boundaries [-999,999]
          */
-        public static int LimitEncoderFeedback(double encData)
+        public static int Clamp(int value, int lower, int upper)
         {
-            if (encData > 999)
-                return 999;
-            else if (encData < -999)
-                return -999;
+            if (value > upper)
+                return upper;
+            else if (value < lower)
+                return lower;
             else
-                return (int) encData;
+                return value;
+        }
+
+        public static int Map(double value, double current_from, double current_to, double target_from, double target_to)
+        {
+            return (int) (target_from + (value - current_from) / (current_to - current_from) * (target_to - target_from));
         }
     }
 }
