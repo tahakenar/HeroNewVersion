@@ -91,30 +91,30 @@ namespace Hero21Core
         {
             // AXIS 1
             armAxis1.Config_kP(0, 40f, timeOutMs);
-            armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
-            armAxis1.ConfigAllowableClosedloopError(0, 5, timeOutMs);
+            //armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
+            //armAxis1.ConfigAllowableClosedloopError(0, 5, timeOutMs);
      
             // AXIS 2
             armAxis2.Config_kP(0, 80f, timeOutMs);
-            armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
-            armAxis2.ConfigAllowableClosedloopError(0, 8, timeOutMs);
+            //armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
+            //armAxis2.ConfigAllowableClosedloopError(0, 8, timeOutMs);
 
             // AXIS 3
             armAxis3.Config_kP(0, 20f, timeOutMs);
-            armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
-            armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
+            //armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
+            //armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
 
             // AXIS 4
             armAxis4.Config_kP(0, 10f, timeOutMs);
-            armAxis4.ConfigAllowableClosedloopError(0, 20, timeOutMs);
+            //armAxis4.ConfigAllowableClosedloopError(0, 20, timeOutMs);
 
             // AXIS 5
             armAxis5.Config_kP(0, 10f, timeOutMs);
-            armAxis5.ConfigAllowableClosedloopError(0, 20, timeOutMs);
+            //armAxis5.ConfigAllowableClosedloopError(0, 20, timeOutMs);
 
             // AXIS 6
             armAxis6.Config_kP(0, 10f, timeOutMs);
-            armAxis6.ConfigAllowableClosedloopError(0, 20, timeOutMs);
+            //armAxis6.ConfigAllowableClosedloopError(0, 20, timeOutMs);
             Watchdog.Feed();
             
         }
@@ -247,27 +247,28 @@ namespace Hero21Core
              * 
              */
             encoderData[0] = armAxis1.GetSelectedSensorPosition();
-            encoderStr[0] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[0] * 999 / 4096f), 1);
+            //encoderStr[0] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[0] * 999 / 4096f), 1);
+            encoderStr[0] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[0] * 999 / 4096f), 1);
             Watchdog.Feed();
 
             encoderData[1] = armAxis2.GetSelectedSensorPosition();
-            encoderStr[1] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[1] * 999 / 1024f), 1);
+            encoderStr[1] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[1] * 999 / 1024f), 1);
             Watchdog.Feed();
 
             encoderData[2] = armAxis3.GetSelectedSensorPosition();
-            encoderStr[2] = SerialCom.ConvertIntToSerialPiece((int) ((((double)encoderData[2] / 700f) - 0.5f) * 2 * 999), 1);
+            encoderStr[2] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((((double)encoderData[2] / 700f) - 0.5f) * 2 * 999), 1);
             Watchdog.Feed();
 
             encoderData[3] = armAxis4.GetSelectedSensorPosition();
-            encoderStr[3] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[3] * 999 / 81920f), 1);
+            encoderStr[3] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[3] * 999 / 81920f), 1);
             Watchdog.Feed();
 
             encoderData[4] = armAxis5.GetSelectedSensorPosition();
-            encoderStr[4] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[4] * 999 / 20480f), 1);
+            encoderStr[4] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[4] * 999 / 20480f), 1);
             Watchdog.Feed();
 
             encoderData[5] = armAxis6.GetSelectedSensorPosition();
-            encoderStr[5] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[5] * 999 / 81920f), 1);
+            encoderStr[5] = SerialCom.ConvertIntToSerialPiece(LimitEncoderFeedback((double)encoderData[5] * 999 / 81920f), 1);
             Watchdog.Feed();
 
 
@@ -296,6 +297,19 @@ namespace Hero21Core
             {
                 armPositionCommands[i] = newCommands[i];
             }
+        }
+
+        /*
+         * This function limits mapped encoder readings to the serial msg boundaries [-999,999]
+         */
+        public static int LimitEncoderFeedback(double encData)
+        {
+            if (encData > 999)
+                return 999;
+            else if (encData < -999)
+                return -999;
+            else
+                return (int) encData;
         }
     }
 }
