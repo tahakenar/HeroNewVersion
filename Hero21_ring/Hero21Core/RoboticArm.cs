@@ -33,7 +33,7 @@ namespace Hero21Core
 
         public static int[] armHomePositions = {2048, 1024, 0, 81920, 20480, 81920 };
         public static int[] armPositionCommands = new int[armMotorNum];
-        public static int[] armEffortCommands = new int[armMotorNum];
+        public static double[] armEffortCommands = new double[armMotorNum];
 
         /* 
          * These mapping coefficients are used to convert encoder ticks into meaningful integers
@@ -212,6 +212,38 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.Position, armEffortCommands[3]);
             armAxis5.Set(ControlMode.Position, armEffortCommands[4]);
             armAxis6.Set(ControlMode.Position, armEffortCommands[5]);
+            Debug.Print("EXECUTING EFFORT COMMANDS!");
+        }
+
+        public static void ExecuteArmPositionCommands()
+        {
+            string[] testDebug = new string[RoboticArm.armMotorNum];
+
+            //SerialCom.CheckMsgContinuity();
+
+            SerialCom.AssignArmPositionCmds();
+            RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
+            RoboticArm.SetPositionCommand();
+            SerialCom.assignCommands = false;
+
+
+            testDebug[0] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[0], 1);
+            testDebug[1] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[1], 1);
+            testDebug[2] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[2], 1);
+            testDebug[3] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[3], 1);
+            testDebug[4] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[4], 1);
+            testDebug[5] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[5], 1);
+
+            Debug.Print("Commands: " + testDebug[0] + testDebug[1] + testDebug[2] + testDebug[3] + testDebug[4] + testDebug[5]);
+
+        }
+
+        public static void ExecuteArmVoltageCommands()
+        {
+            SerialCom.AssignArmVoltageCmds();
+            UpdateVoltageCommands(SerialCom.armCommandsArray);
+            RoboticArm.SetEffortCommand();
+
         }
 
         /*
@@ -248,32 +280,33 @@ namespace Hero21Core
              */
             encoderData[0] = armAxis1.GetSelectedSensorPosition();
             //encoderStr[0] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[0] * 999 / 4096f), 1);
-            encoderStr[0] = Clamp(encoderData[0], 0, 4096).ToString("D4");
+            encoderStr[0] = Utils.Clamp(encoderData[0], 0, 4096).ToString("D4");
             Watchdog.Feed();
 
             encoderData[1] = armAxis2.GetSelectedSensorPosition();
-            encoderStr[1] = Clamp(encoderData[1], 0, 1024 + 512).ToString("D4");
+            encoderStr[1] = Utils.Clamp(encoderData[1], 0, 1024 + 512).ToString("D4");
             Watchdog.Feed();
 
             encoderData[2] = armAxis3.GetSelectedSensorPosition();
-            encoderStr[2] = Clamp(encoderData[2], 0, 1024).ToString("D4");
+            encoderStr[2] = Utils.Clamp(encoderData[2], 0, 1024).ToString("D4");
             Watchdog.Feed();
 
             encoderData[3] = armAxis4.GetSelectedSensorPosition();
-            encoderStr[3] = Map(Clamp(encoderData[3], 0, 81920 * 2), 0, 81920 * 2, 0, 9999).ToString("D4");
+            encoderStr[3] = ((int) Utils.Map(Utils.Clamp(encoderData[3], 0, 81920 * 2), 0, 81920 * 2, 0, 9999)).ToString("D4");
             Watchdog.Feed();
 
             encoderData[4] = armAxis5.GetSelectedSensorPosition();
-            encoderStr[4] = Map(Clamp(encoderData[4], 0, 20480 * 2), 0, 20480 * 2, 0, 9999).ToString("D4");
+            encoderStr[4] = ((int) Utils.Map(Utils.Clamp(encoderData[4], 0, 20480 * 2), 0, 20480 * 2, 0, 9999)).ToString("D4");
             Watchdog.Feed();
 
             encoderData[5] = armAxis6.GetSelectedSensorPosition();
-            encoderStr[5] = Map(Clamp(encoderData[5], 0, 81920 * 2), 0, 81920 * 2, 0, 9999).ToString("D4");
+            encoderStr[5] = ((int) Utils.Map(Utils.Clamp(encoderData[5], 0, 81920 * 2), 0, 81920 * 2, 0, 9999)).ToString("D4");
             Watchdog.Feed();
 
 
             armFeedback = encoderStr[0] + encoderStr[1] + encoderStr[2] + encoderStr[3] + encoderStr[4] + encoderStr[5];
-            //Debug.Print(armFeedback);
+            Debug.Print("Encoder feedback: ");
+            Debug.Print(armFeedback);
             return armFeedback;
         }
 
@@ -285,6 +318,14 @@ namespace Hero21Core
             for (int i = 0; i < armMotorNum; i++)
             {
                 armPositionCommands[i] = newCommands[i];
+            }
+        }
+
+        public static void UpdateVoltageCommands(int[] newCommands)
+        {
+            for (int i = 0; i < armMotorNum; i++)
+            {
+                armEffortCommands[i] = Utils.Map(newCommands[i], 0, 10, -1, 1);
             }
         }
 
@@ -302,22 +343,6 @@ namespace Hero21Core
             armAxis6.Set(ControlMode.Position, armHomePositions[5]);
         }
 
-        /*
-         * This function limits mapped encoder readings to the serial msg boundaries [-999,999]
-         */
-        public static int Clamp(int value, int lower, int upper)
-        {
-            if (value > upper)
-                return upper;
-            else if (value < lower)
-                return lower;
-            else
-                return value;
-        }
 
-        public static int Map(double value, double current_from, double current_to, double target_from, double target_to)
-        {
-            return (int) (target_from + (value - current_from) / (current_to - current_from) * (target_to - target_from));
-        }
     }
 }

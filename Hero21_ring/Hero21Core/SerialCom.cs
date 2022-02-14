@@ -22,6 +22,7 @@ namespace Hero21Core
         public static int readCnt;
 
         private static int receiveCounter = 0;
+        private static int resetCounter = 0;
         private static bool receiveFlag = false;
         private static int[] incomingData = new int[30];    // 30 is arbitrarily given (24 + 1)
         public static bool assignCommands = false;
@@ -144,29 +145,68 @@ namespace Hero21Core
          */
         public static void ReadCommand(byte incomingASCII)
         {
+            /*
+             * RRRRR: Reset arm sensors
+             * TTTTT: Toggle PID controller
+             * S   _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _   F: Position command
+             * S _ _ _ _ _ _ F: Voltage command
+             */
+
+            if (incomingASCII == 82 && receiveFlag == false)    // Capture 'R' character
+            {
+                resetCounter = 0;
+                receiveFlag = true; 
+            }
+
             if (incomingASCII == 83)    // Capture 'S' character
             {
+                resetCounter = 0;
                 receiveFlag = true;
                 receiveCounter = 0;
-                Debug.Print("S");
             }
-            if (receiveFlag == true && incomingASCII != 83 && incomingASCII != 70)      // If not 'S' and 'F'
+            else if (receiveFlag == true && incomingASCII != 70 && incomingASCII != 82)      // If not 'S','F' and 'R'
             {
                 incomingData[receiveCounter] = (incomingASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
-            if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)   // 'F' check -> finish condition
+            //else if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)   // 'F' check -> finish condition
+            else if ((receiveFlag == true && incomingASCII == 70))
             {
+                //assignCommands = true;
+                if (receiveCounter == 25)
+                    RoboticArm.ExecuteArmPositionCommands();
+                else if (receiveCounter == 6)
+                    // TODO: Voltage referance
+                    RoboticArm.ExecuteArmVoltageCommands();
+
                 receiveCounter = 0;
-                noNewMsgCounter = 0;                                                    // Reset since new msg is available
+                noNewMsgCounter = 0;                   // Reset since new msg is available
                 //Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
-                assignCommands = true;
             }
+            else if (receiveFlag == true && incomingASCII == 82)
+            {
+                resetCounter++;
+                if (resetCounter == 5)
+                {
+                    RoboticArm.ResetArmSensors();
+                    Debug.Print("RESET ARM SENSORS");
+                    resetCounter = 0;
+                }
+            }
+
+            
 
         }
 
-        public static void AssignArmCommands()
+        public static void AssignArmVoltageCmds() {
+            for (int i = 0; i < RoboticArm.armMotorNum; i++)
+            {
+                armCommandsArray[i] = incomingData[i];                   
+            }
+        }
+        
+        public static void AssignArmPositionCmds()
         {
  
             for (int i = 0, j = 0; i < armMsgLen; i += strPieceLen, j++)
@@ -176,6 +216,8 @@ namespace Hero21Core
             }
             
         }
+
+
 
         /*
          * This function is used to check if the incoming serial message is continuously updating
