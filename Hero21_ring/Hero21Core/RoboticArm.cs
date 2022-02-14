@@ -206,13 +206,20 @@ namespace Hero21Core
 
         public static void SetEffortCommand()
         {
-            armAxis1.Set(ControlMode.Position, armEffortCommands[0]);
-            armAxis2.Set(ControlMode.Position, armEffortCommands[1]);
-            armAxis3.Set(ControlMode.Position, armEffortCommands[2]);
-            armAxis4.Set(ControlMode.Position, armEffortCommands[3]);
-            armAxis5.Set(ControlMode.Position, armEffortCommands[4]);
-            armAxis6.Set(ControlMode.Position, armEffortCommands[5]);
+            armAxis1.Set(ControlMode.PercentOutput, (double) armEffortCommands[0]);
+            armAxis2.Set(ControlMode.PercentOutput, (double) armEffortCommands[1]);
+            armAxis3.Set(ControlMode.PercentOutput, (double) armEffortCommands[2]);
+            armAxis4.Set(ControlMode.PercentOutput, (double) armEffortCommands[3]);
+            armAxis5.Set(ControlMode.PercentOutput, (double) armEffortCommands[4]);
+            armAxis6.Set(ControlMode.PercentOutput, (double) armEffortCommands[5]);
             Debug.Print("EXECUTING EFFORT COMMANDS!");
+            Debug.Print(armEffortCommands[0].ToString());
+            Debug.Print(armEffortCommands[1].ToString());
+            Debug.Print(armEffortCommands[2].ToString());
+            Debug.Print(armEffortCommands[3].ToString());
+            Debug.Print(armEffortCommands[4].ToString());
+            Debug.Print(armEffortCommands[5].ToString());
+
         }
 
         public static void ExecuteArmPositionCommands()
@@ -325,7 +332,8 @@ namespace Hero21Core
         {
             for (int i = 0; i < armMotorNum; i++)
             {
-                armEffortCommands[i] = Utils.Map(newCommands[i], 0, 10, -1, 1);
+                //armEffortCommands[i] = (double) Utils.Map((double) newCommands[i], 0, 10, -1, 1);
+                armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 10.0;
             }
         }
 

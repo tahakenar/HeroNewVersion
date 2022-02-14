@@ -202,7 +202,8 @@ namespace Hero21Core
         public static void AssignArmVoltageCmds() {
             for (int i = 0; i < RoboticArm.armMotorNum; i++)
             {
-                armCommandsArray[i] = incomingData[i];                   
+                armCommandsArray[i] = incomingData[i];
+                // Debug.Print(incomingData[i].ToString());
             }
         }
         
