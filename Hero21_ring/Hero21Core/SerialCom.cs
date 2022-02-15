@@ -47,6 +47,17 @@ namespace Hero21Core
         private static string steeringFeedbackMsg = "";
         private static string finalFeedbackMsg = "";
 
+
+        private static int resetCntTresh = 5;
+        private static int positionCmdCntTresh = 25;
+        private static int voltageCmdCntTresh = 6;
+
+        private static int startChar = 83;      // S
+        private static int finishChar = 70;     // F
+        private static int resetChar = 82;      // R
+        private static int toggleChar;
+        private static int homeChar;
+
         /*
          * This function initializes the serial communication -> it opens the serial port
          */
@@ -152,30 +163,30 @@ namespace Hero21Core
              * S _ _ _ _ _ _ F: Voltage command
              */
 
-            if (incomingASCII == 82 && receiveFlag == false)    // Capture 'R' character
+            if (incomingASCII == resetChar && receiveFlag == false)    // Capture 'R' character
             {
                 resetCounter = 0;
                 receiveFlag = true; 
             }
 
-            if (incomingASCII == 83)    // Capture 'S' character
+            if (incomingASCII == startChar)    // Capture 'S' character
             {
                 resetCounter = 0;
                 receiveFlag = true;
                 receiveCounter = 0;
             }
-            else if (receiveFlag == true && incomingASCII != 70 && incomingASCII != 82)      // If not 'S','F' and 'R'
+            else if (receiveFlag == true && incomingASCII != resetChar && incomingASCII != finishChar)      // If not 'S','F' and 'R'
             {
                 incomingData[receiveCounter] = (incomingASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
             //else if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)   // 'F' check -> finish condition
-            else if ((receiveFlag == true && incomingASCII == 70))
+            else if ((receiveFlag == true && incomingASCII == finishChar))
             {
                 //assignCommands = true;
-                if (receiveCounter == 25)
+                if (receiveCounter == positionCmdCntTresh)
                     RoboticArm.ExecuteArmPositionCommands();
-                else if (receiveCounter == 6)
+                else if (receiveCounter == voltageCmdCntTresh)
                     // TODO: Voltage referance
                     RoboticArm.ExecuteArmVoltageCommands();
 
@@ -184,10 +195,10 @@ namespace Hero21Core
                 //Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
             }
-            else if (receiveFlag == true && incomingASCII == 82)
+            else if (receiveFlag == true && incomingASCII == resetChar)
             {
                 resetCounter++;
-                if (resetCounter == 5)
+                if (resetCounter == resetCntTresh)
                 {
                     RoboticArm.ResetArmSensors();
                     Debug.Print("RESET ARM SENSORS");

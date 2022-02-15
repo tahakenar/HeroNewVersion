@@ -201,6 +201,9 @@ namespace Hero21Core
             armAxis5.Set(ControlMode.Position, ((int)(((double)armPositionCommands[4] / 9999) * 20480 * 2)));
             armAxis6.Set(ControlMode.Position, ((int)(((double)armPositionCommands[5] / 9999) * 81920 * 2)));
             Watchdog.Feed();
+
+
+            Debug.Print("----------- executing POSITION commands");
             //armGripper.Set(ControlMode.Position, (int)(armPositionCommands[6] / armMappingCoefs[6]));
         }
 
@@ -212,13 +215,8 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.PercentOutput, (double) armEffortCommands[3]);
             armAxis5.Set(ControlMode.PercentOutput, (double) armEffortCommands[4]);
             armAxis6.Set(ControlMode.PercentOutput, (double) armEffortCommands[5]);
-            Debug.Print("EXECUTING EFFORT COMMANDS!");
-            Debug.Print(armEffortCommands[0].ToString());
-            Debug.Print(armEffortCommands[1].ToString());
-            Debug.Print(armEffortCommands[2].ToString());
-            Debug.Print(armEffortCommands[3].ToString());
-            Debug.Print(armEffortCommands[4].ToString());
-            Debug.Print(armEffortCommands[5].ToString());
+
+            Debug.Print("----------- executing VOLTAGE commands" + armEffortCommands[0].ToString() + armEffortCommands[1].ToString() + armEffortCommands[2].ToString() + armEffortCommands[3].ToString() + armEffortCommands[4].ToString() + armEffortCommands[5].ToString());
 
         }
 
@@ -229,8 +227,8 @@ namespace Hero21Core
             //SerialCom.CheckMsgContinuity();
 
             SerialCom.AssignArmPositionCmds();
-            RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
-            RoboticArm.SetPositionCommand();
+            UpdatePositionCommands(SerialCom.armCommandsArray);
+            SetPositionCommand();
             SerialCom.assignCommands = false;
 
 
