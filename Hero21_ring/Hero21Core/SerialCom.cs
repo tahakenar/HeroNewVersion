@@ -89,18 +89,7 @@ namespace Hero21Core
             return retval;
         }
 
-        /*
-         * This function converts integer value into meaningful serial piece
-         * Example: -150 -> "0150" or +150 -> "1150"
-         *
-         */
-        public static string ConvertIntToSerialPiece(int i, int sign)
-        {
-            if (sign == 0)
-                return (i < 0 ? "1" : "0") + (i < 0 ? -i : i).ToString("D3");
-            else
-                return (i > 0 ? "1" : "0") + (i < 0 ? -i : i).ToString("D3");
-        }
+
 
         /*
          * This function gets systems feedback msgs and sends it via uart
@@ -148,13 +137,8 @@ namespace Hero21Core
             return retval;
         }
 
-        /*
-         * This function is called whenever a byte in circular buffer is poppin out.
-         * It processes the incoming byte (as ascii chars) and raises a flag after a whole msg is received.
-         * TODO: Double check communication safety
-         * TODO: Communication control byte will be included
-         */
-        public static void ReadCommand(byte incomingASCII)
+
+        public unsafe static void ReadCommand(byte incomingByte)
         {
             /*
              * RRRRR: Reset arm sensors
@@ -162,32 +146,31 @@ namespace Hero21Core
              * S   _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _ _ _ _    _   F: Position command
              * S _ _ _ _ _ _ F: Voltage command
              */
+            int incASCII = (int)incomingByte;
+            int* incASCIIPtr = &incASCII;
 
-            if (incomingASCII == resetChar && receiveFlag == false)    // Capture 'R' character
+            if (CheckMsgResetChar(incASCIIPtr) && receiveFlag == false)    // Capture 'R' character
             {
                 resetCounter = 0;
                 receiveFlag = true; 
             }
 
-            if (incomingASCII == startChar)    // Capture 'S' character
+            if (CheckMsgStartChar(incASCIIPtr))    // Capture 'S' character
             {
                 resetCounter = 0;
                 receiveFlag = true;
                 receiveCounter = 0;
             }
-            else if (receiveFlag == true && incomingASCII != resetChar && incomingASCII != finishChar)      // If not 'S','F' and 'R'
+            else if (CheckGetCmdsCondition(incASCIIPtr))      // If not 'S','F' and 'R'
             {
-                incomingData[receiveCounter] = (incomingASCII) - 48;                    // ASCII to integer conversion
+                incomingData[receiveCounter] = (incASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
-            //else if ((receiveFlag == true && incomingASCII == 70) || receiveCounter >= 25)   // 'F' check -> finish condition
-            else if ((receiveFlag == true && incomingASCII == finishChar))
+            else if  (CheckFinishCondition(incASCIIPtr))
             {
-                //assignCommands = true;
                 if (receiveCounter == positionCmdCntTresh)
                     RoboticArm.ExecuteArmPositionCommands();
                 else if (receiveCounter == voltageCmdCntTresh)
-                    // TODO: Voltage referance
                     RoboticArm.ExecuteArmVoltageCommands();
 
                 receiveCounter = 0;
@@ -195,7 +178,7 @@ namespace Hero21Core
                 //Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
             }
-            else if (receiveFlag == true && incomingASCII == resetChar)
+            else if (receiveFlag == true && CheckMsgResetChar(incASCIIPtr))
             {
                 resetCounter++;
                 if (resetCounter == resetCntTresh)
@@ -205,8 +188,42 @@ namespace Hero21Core
                     resetCounter = 0;
                 }
             }
+        }
 
-            
+        private unsafe static bool CheckMsgStartChar(int* incomingASCII)
+        {
+            if (*incomingASCII == startChar)
+                return true;
+            else
+                return false;
+        }
+
+        private unsafe static bool CheckMsgResetChar(int* incomingASCII)
+        {
+            if (*incomingASCII == resetChar)
+                return true;
+            else
+                return false;
+        }
+
+        private unsafe static bool CheckGetCmdsCondition(int* incomingASCII)
+        {
+            if (receiveFlag == false)
+                return false;
+            else if (*incomingASCII == finishChar)
+                return false;
+            else if (*incomingASCII == resetChar)
+                return false;
+            else
+                return true;
+        }
+
+        private unsafe static bool CheckFinishCondition(int* incomingASCII)
+        {
+            if (receiveFlag == true && *incomingASCII == finishChar)
+                return true;
+            else
+                return false;
 
         }
 

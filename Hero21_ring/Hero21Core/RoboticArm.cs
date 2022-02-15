@@ -232,12 +232,12 @@ namespace Hero21Core
             SerialCom.assignCommands = false;
 
 
-            testDebug[0] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[0], 1);
-            testDebug[1] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[1], 1);
-            testDebug[2] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[2], 1);
-            testDebug[3] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[3], 1);
-            testDebug[4] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[4], 1);
-            testDebug[5] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[5], 1);
+            testDebug[0] = SerialCom.armCommandsArray[0].ToString();
+            testDebug[1] = SerialCom.armCommandsArray[1].ToString();
+            testDebug[2] = SerialCom.armCommandsArray[2].ToString();
+            testDebug[3] = SerialCom.armCommandsArray[3].ToString();
+            testDebug[4] = SerialCom.armCommandsArray[4].ToString();
+            testDebug[5] = SerialCom.armCommandsArray[5].ToString();
 
             Debug.Print("Commands: " + testDebug[0] + testDebug[1] + testDebug[2] + testDebug[3] + testDebug[4] + testDebug[5]);
 

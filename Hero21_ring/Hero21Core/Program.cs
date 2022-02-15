@@ -46,29 +46,6 @@ namespace Hero21Core
                     {
 
                         SerialCom.ReadCommand(SerialCom._rx[i]);                   
-                        if (SerialCom.assignCommands == true)
-                        {
-                            /*
-                            string[] testDebug = new string[RoboticArm.armMotorNum];
-
-                            //SerialCom.CheckMsgContinuity();
-                            
-                            SerialCom.AssignArmCommands();
-                            RoboticArm.UpdatePositionCommands(SerialCom.armCommandsArray);
-                            RoboticArm.SetPositionCommand();
-                            SerialCom.assignCommands = false;
-                            
-
-                            testDebug[0] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[0], 1);
-                            testDebug[1] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[1], 1);
-                            testDebug[2] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[2], 1);
-                            testDebug[3] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[3], 1);
-                            testDebug[4] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[4], 1);
-                            testDebug[5] = SerialCom.ConvertIntToSerialPiece(SerialCom.armCommandsArray[5], 1);
-
-                            Debug.Print("Commands: " + testDebug[0] + testDebug[1] + testDebug[2] + testDebug[3] + testDebug[4] + testDebug[5]);
-                            */
-                        }
                     }
                 
  
