@@ -31,7 +31,7 @@ namespace Hero21Core
         // 0 -> position command, 1 -> velocity command ...
 
 
-        public static int[] armHomePositions = {2048, 1024, 0, 81920, 20480, 81920 };
+        public static int[] armHomePositions = {2048, 1024, 1024, 81920, 20480, 81920 };
         public static int[] armPositionCommands = new int[armMotorNum];
         public static double[] armEffortCommands = new double[armMotorNum];
 
@@ -93,17 +93,17 @@ namespace Hero21Core
         {
             // AXIS 1
             armAxis1.Config_kP(0, 40f, timeOutMs);
-            //armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
+            armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
             //armAxis1.ConfigAllowableClosedloopError(0, 5, timeOutMs);
-     
+
             // AXIS 2
             armAxis2.Config_kP(0, 80f, timeOutMs);
-            //armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
+            armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
             //armAxis2.ConfigAllowableClosedloopError(0, 8, timeOutMs);
 
             // AXIS 3
             armAxis3.Config_kP(0, 20f, timeOutMs);
-            //armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
+            armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
             //armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
 
             // AXIS 4
@@ -184,7 +184,7 @@ namespace Hero21Core
             SetAxisSpecificParams();
             SetEncoderPhases();
             SelectTalonsProfileSlots();
-            ResetArmSensors();
+            //ResetArmSensors();
         }
 
         /*
@@ -194,9 +194,9 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            armAxis1.Set(ControlMode.Position, armPositionCommands[0]);
-            armAxis2.Set(ControlMode.Position, armPositionCommands[1]);
-            armAxis3.Set(ControlMode.Position, armPositionCommands[2]);
+            armAxis1.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[0],0,4096));
+            armAxis2.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[1],512,1536));
+            armAxis3.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[2],512,1024+512));
             armAxis4.Set(ControlMode.Position, ((int)(((double)armPositionCommands[3] / 9999) * 81920 * 2)));            
             armAxis5.Set(ControlMode.Position, ((int)(((double)armPositionCommands[4] / 9999) * 20480 * 2)));
             armAxis6.Set(ControlMode.Position, ((int)(((double)armPositionCommands[5] / 9999) * 81920 * 2)));
@@ -247,7 +247,7 @@ namespace Hero21Core
         {
             SerialCom.AssignArmVoltageCmds();
             UpdateVoltageCommands(SerialCom.armCommandsArray);
-            RoboticArm.SetEffortCommand();
+            SetEffortCommand();
 
         }
 
@@ -293,7 +293,7 @@ namespace Hero21Core
             Watchdog.Feed();
 
             encoderData[2] = armAxis3.GetSelectedSensorPosition();
-            encoderStr[2] = Utils.Clamp(encoderData[2], 0, 1024).ToString("D4");
+            encoderStr[2] = Utils.Clamp(encoderData[2], 512, 1024+512).ToString("D4");
             Watchdog.Feed();
 
             encoderData[3] = armAxis4.GetSelectedSensorPosition();
@@ -310,8 +310,8 @@ namespace Hero21Core
 
 
             armFeedback = encoderStr[0] + encoderStr[1] + encoderStr[2] + encoderStr[3] + encoderStr[4] + encoderStr[5];
-            Debug.Print("Encoder feedback: ");
-            Debug.Print(armFeedback);
+            //Debug.Print("Encoder feedback: ");
+            //Debug.Print(armFeedback);
             return armFeedback;
         }
 
@@ -331,7 +331,7 @@ namespace Hero21Core
             for (int i = 0; i < armMotorNum; i++)
             {
                 //armEffortCommands[i] = (double) Utils.Map((double) newCommands[i], 0, 10, -1, 1);
-                armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 10.0;
+                armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 5.0;
             }
         }
 

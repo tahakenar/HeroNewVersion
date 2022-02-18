@@ -33,7 +33,7 @@ namespace Hero21Core
         private static int serialErrCounter = 0;
         private static int serialErrCounterTreshold = 25;
         private static int noNewMsgCounter = 0;             // it increases when there is no new msg, reset if new msg is available
-        private static int noNewMsgCounterTresh = 30;
+        private static int noNewMsgCounterTresh = 29;
         //TODO: If no new messages are coming, stop the motors
 
         private static int armMsgLen = 24;                  // string length of arm msgs
@@ -101,6 +101,12 @@ namespace Hero21Core
             finalFeedbackMsg = "A" + armFeedbackMsg + steeringFeedbackMsg + "B";
             Write(finalFeedbackMsg);
 
+        }
+
+        public static void SendErrMsg()
+        {
+            string err = "EMERGENCY STOP !!!!!!!!!";
+            Write(err);
         }
 
         // Rest are the methods used for cicular buffer
@@ -175,8 +181,9 @@ namespace Hero21Core
 
                 receiveCounter = 0;
                 noNewMsgCounter = 0;                   // Reset since new msg is available
-                //Debug.Print("No new msg counter reset!");
+                Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
+                CheckMsgContinuity();
             }
             else if (receiveFlag == true && CheckMsgResetChar(incASCIIPtr))
             {
@@ -266,6 +273,7 @@ namespace Hero21Core
             {
                 commCheck = false;
                 serialErrCounter = serialErrCounter + 1;
+                Debug.Print("NO MSG CONTINUITY");
             }
             checkPrev = checkCurr;
         }
@@ -291,6 +299,7 @@ namespace Hero21Core
         public static void IncreaseNoMsgCounter()
         {
             noNewMsgCounter = noNewMsgCounter + 1;
+            Debug.Print("NO NEW MSG CNT HAS INCREASED");
         }
 
         /*

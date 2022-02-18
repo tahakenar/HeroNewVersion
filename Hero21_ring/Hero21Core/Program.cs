@@ -47,22 +47,24 @@ namespace Hero21Core
 
                         SerialCom.ReadCommand(SerialCom._rx[i]);                   
                     }
-                
- 
-                       
-                    if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
-                    {
-                        // EMERGENCY STOP CONDITION
-                        RoboticArm.StopArmActuators();
-                        Debug.Print("EMERGENCY STOP");
-                    }
                        
                 }
-                
 
-                
-                if (SerialCom._txCnt > 0)
+                if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
                 {
+                    // EMERGENCY STOP CONDITION
+                    RoboticArm.StopArmActuators();
+                    Debug.Print("EMERGENCY STOP");
+                    if (SerialCom._uart.CanWrite)
+                    {
+                        SerialCom.SendErrMsg();
+                    }
+                }
+
+
+
+                if (SerialCom._txCnt > 0)
+                { 
                     scratch[0] = SerialCom.PopByte();
                 }
                 
