@@ -23,6 +23,8 @@ namespace Hero21Core
             // DO ALL THE INITIALIZATION STUFF HERE!
             SerialCom.InitializeSerialCom();
             RoboticArm.InitializeRoboticArmSys();
+
+            
             
             // For ring buffer implementation
             byte[] scratch = new byte[1];
@@ -32,6 +34,8 @@ namespace Hero21Core
                 Watchdog.Feed();
                 SerialCom.IncreaseNoMsgCounter();
                 // GET THE SENSOR DATA AND TRANSMIT IT TO THE HIGH LEVEL CONTROLLER HERE!
+
+
                 if (SerialCom._uart.CanWrite)
                 {
                     SerialCom.SendFeedbackMsg();   
@@ -50,15 +54,12 @@ namespace Hero21Core
                        
                 }
 
-                if (SerialCom.CheckSerialErrCnt() == false || SerialCom.CheckNoMsgCnt() == false)
+                if (SerialCom.CheckNoMsgCnt() == false || SerialCom.CheckSerialErrCnt() == false)
                 {
                     // EMERGENCY STOP CONDITION
                     RoboticArm.StopArmActuators();
+                    DebugClass.LogSpecCases(DebugClass.specCases.emergencyStop);
                     Debug.Print("EMERGENCY STOP");
-                    if (SerialCom._uart.CanWrite)
-                    {
-                        SerialCom.SendErrMsg();
-                    }
                 }
 
 

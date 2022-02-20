@@ -34,7 +34,14 @@ namespace Hero21Core
             resetSensors
         }
 
-        public static void LogSpecCases(specCases mode){
+        public static void LogCustomMsg(string msg)
+        {
+            msg = PadLeft(msg,50,'_');
+            CheckAndSendMsg(msg);
+            Watchdog.Feed();
+        }
+        public static void LogSpecCases(specCases mode)
+        {
 
             switch (mode)
             {
@@ -42,7 +49,7 @@ namespace Hero21Core
                     finalMsg = "Main loop is running";
                     break;
                 case specCases.joystickControl:
-                    finalMsg = "Joystick control mode is executing";        
+                    finalMsg = "Joystick control mode is executing";
                     break;
                 case specCases.emergencyStop:
                     finalMsg = "EMERGENCY STOP";
@@ -85,20 +92,20 @@ namespace Hero21Core
                     finalMsg = "";
                     break;
             }
-            
 
-            for (int i = 0;  i < RoboticArm.armMotorNum; i++)
+
+            for (int i = 0; i < RoboticArm.armMotorNum; i++)
             {
                 motorInfo = SerialCom.armCommandsArray[i].ToString();
                 finalMsg += motorInfo;
             }
 
-            finalMsg = PadLeft(finalMsg,50,'_');
+            finalMsg = PadLeft(finalMsg, 50, '_');
 
             CheckAndSendMsg(finalMsg);
         }
 
-        
+
 
 
         private static string PadLeft(string strToBePadded, int length, char paddingElement)

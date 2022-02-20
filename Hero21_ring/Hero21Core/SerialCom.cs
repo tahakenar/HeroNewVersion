@@ -14,6 +14,8 @@ namespace Hero21Core
     class SerialCom
     {
         public static System.IO.Ports.SerialPort _uart = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port1.UART, 115200);
+        public static System.IO.Ports.SerialPort _uartDebug = new System.IO.Ports.SerialPort(CTRE.HERO.IO.Port4.UART, 115200);
+
         public static byte[] _rx = new byte[1024];
         static byte[] _tx = new byte[1024];
         public static int _txIn = 0;
@@ -26,14 +28,13 @@ namespace Hero21Core
         private static bool receiveFlag = false;
         private static int[] incomingData = new int[30];    // 30 is arbitrarily given (24 + 1)
         public static bool assignCommands = false;
-        public static bool commCheck = true;
         private static int checkCurr = 0;
         private static int checkPrev = 1;
 
         private static int serialErrCounter = 0;
-        private static int serialErrCounterTreshold = 25;
+        private static int serialErrCounterTreshold = 5;
         private static int noNewMsgCounter = 0;             // it increases when there is no new msg, reset if new msg is available
-        private static int noNewMsgCounterTresh = 29;
+        private static int noNewMsgCounterTresh = 10;
         //TODO: If no new messages are coming, stop the motors
 
         private static int armMsgLen = 24;                  // string length of arm msgs
@@ -50,7 +51,7 @@ namespace Hero21Core
 
         private static int resetCntTresh = 5;
         private static int positionCmdCntTresh = 25;
-        private static int voltageCmdCntTresh = 6;
+        private static int voltageCmdCntTresh = 7;
 
         private static int startChar = 83;      // S
         private static int finishChar = 70;     // F
@@ -64,6 +65,7 @@ namespace Hero21Core
         public static void InitializeSerialCom()
         {
             _uart.Open();
+            _uartDebug.Open();
             Watchdog.Feed();
         }
 
@@ -75,6 +77,13 @@ namespace Hero21Core
             byte[] msg_byte = String2Byte(msg);
             Watchdog.Feed();
             _uart.Write(msg_byte, 0, msg.Length);
+        }
+
+        public static void WriteDebug(string msg)
+        {
+            byte[] msg_byte = String2Byte(msg);
+            Watchdog.Feed();
+            _uartDebug.Write(msg_byte, 0, msg.Length);
         }
 
         /*
@@ -174,16 +183,19 @@ namespace Hero21Core
             }
             else if  (CheckFinishCondition(incASCIIPtr))
             {
-                if (receiveCounter == positionCmdCntTresh)
+
+                CheckMsgContinuity(receiveCounter - 1);
+
+                if (receiveCounter == positionCmdCntTresh && CheckSerialErrCnt() == true)
                     RoboticArm.ExecuteArmPositionCommands();
-                else if (receiveCounter == voltageCmdCntTresh)
+                else if (receiveCounter == voltageCmdCntTresh && CheckSerialErrCnt() == true)
                     RoboticArm.ExecuteArmVoltageCommands();
 
                 receiveCounter = 0;
                 noNewMsgCounter = 0;                   // Reset since new msg is available
                 Debug.Print("No new msg counter reset!");
                 receiveFlag = false;
-                CheckMsgContinuity();
+                
             }
             else if (receiveFlag == true && CheckMsgResetChar(incASCIIPtr))
             {
@@ -261,20 +273,14 @@ namespace Hero21Core
          * If any match is detected, the commCheck changed to be 'false' to inform the program that high level controller is always sending the same message which is an error
          * Also it increments or resets the error counter
          */
-        public static void CheckMsgContinuity()
+        public static void CheckMsgContinuity(int byteToBeChecked)
         {
-            checkCurr = incomingData[commCheckByteIdx];
-            if (checkCurr != checkPrev)
-            {
-                commCheck = true;
-                serialErrCounter = 0;
-            }
-            else
-            {
-                commCheck = false;
-                serialErrCounter = serialErrCounter + 1;
-                Debug.Print("NO MSG CONTINUITY");
-            }
+            checkCurr = incomingData[byteToBeChecked];
+
+            serialErrCounter = (checkCurr == checkPrev) ? serialErrCounter += 1 : serialErrCounter = 0;
+
+            DebugClass.LogCustomMsg("Serial error counter: " + serialErrCounter.ToString());
+
             checkPrev = checkCurr;
         }
 
@@ -287,9 +293,15 @@ namespace Hero21Core
         public static bool CheckSerialErrCnt()
         {
             if (serialErrCounter < serialErrCounterTreshold)
+            {
+                DebugClass.LogCustomMsg("No problem rn");
                 return true;
+            }
             else
+            {
+                DebugClass.LogCustomMsg("Serial error counter exceeded the treshold");
                 return false;
+            }
         }
 
         /*
