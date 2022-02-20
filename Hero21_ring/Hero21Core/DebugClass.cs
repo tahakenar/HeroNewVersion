@@ -20,7 +20,7 @@ namespace Hero21Core
         private static string motorInfo;
         private static string encoderInfo;
 
-        public enum ArmDebugModes
+        public enum SysDebugModes
         {
             position,
             voltage
@@ -78,14 +78,14 @@ namespace Hero21Core
         }
 
         // mode = 0: position, mode = 1 voltage  ref.
-        public static void LogRoboticArmCommands(ArmDebugModes mode)
+        public static void LogSysCommands(SysDebugModes mode, int motorNum, int[] commandArray)
         {
             switch (mode)
             {
-                case ArmDebugModes.position:
+                case SysDebugModes.position:
                     finalMsg = "Positon commands: ";
                     break;
-                case ArmDebugModes.voltage:
+                case SysDebugModes.voltage:
                     finalMsg = "Voltage commands: ";
                     break;
                 default:
@@ -94,10 +94,11 @@ namespace Hero21Core
             }
 
 
-            for (int i = 0; i < RoboticArm.armMotorNum; i++)
+            for (int i = 0; i < motorNum; i++)
             {
-                motorInfo = SerialCom.armCommandsArray[i].ToString();
+                motorInfo = commandArray[i].ToString();
                 finalMsg += motorInfo;
+                finalMsg += " ";
             }
 
             finalMsg = PadLeft(finalMsg, 50, '_');

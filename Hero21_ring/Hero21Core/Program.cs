@@ -61,6 +61,7 @@ namespace Hero21Core
                     DebugClass.LogSpecCases(DebugClass.specCases.emergencyStop);
                     Debug.Print("EMERGENCY STOP");
                 }
+                
 
 
 

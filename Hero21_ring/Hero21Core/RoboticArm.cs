@@ -194,7 +194,7 @@ namespace Hero21Core
          */
         public static void SetPositionCommand()
         {
-            DebugClass.LogRoboticArmCommands(DebugClass.ArmDebugModes.position);
+            DebugClass.LogSysCommands(DebugClass.SysDebugModes.position,armMotorNum,armPositionCommands);
 
             armAxis1.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[0],0,4096));
             armAxis2.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[1],512,1536));
@@ -211,7 +211,7 @@ namespace Hero21Core
 
         public static void SetEffortCommand()
         {
-            DebugClass.LogRoboticArmCommands(DebugClass.ArmDebugModes.voltage);
+            DebugClass.LogSysCommands(DebugClass.SysDebugModes.voltage,armMotorNum,SerialCom.armCommandsArray);
 
             armAxis1.Set(ControlMode.PercentOutput, (double) armEffortCommands[0]);
             armAxis2.Set(ControlMode.PercentOutput, (double) armEffortCommands[1]);
