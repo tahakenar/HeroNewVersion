@@ -119,6 +119,8 @@ namespace Hero21Core
             armAxis6.Config_kP(0, 10f, timeOutMs);
             //armAxis6.ConfigAllowableClosedloopError(0, 20, timeOutMs);
             Watchdog.Feed();
+
+            armGripper.ConfigVoltageCompSaturation(12, timeOutMs);
             
         }
 
@@ -226,7 +228,7 @@ namespace Hero21Core
             armAxis6.Set(ControlMode.PercentOutput, (double) armEffortCommands[5]);
             armGripper.Set(ControlMode.PercentOutput, (double) armEffortCommands[6]);
 
-            Debug.Print("----------- executing VOLTAGE commands" + armEffortCommands[0].ToString() + armEffortCommands[1].ToString() + armEffortCommands[2].ToString() + armEffortCommands[3].ToString() + armEffortCommands[4].ToString() + armEffortCommands[5].ToString());
+            Debug.Print("----------- executing VOLTAGE commands" + armEffortCommands[0].ToString() + armEffortCommands[1].ToString() + armEffortCommands[2].ToString() + armEffortCommands[3].ToString() + armEffortCommands[4].ToString() + armEffortCommands[5].ToString() + armEffortCommands[6].ToString());
 
         }
 
@@ -344,6 +346,8 @@ namespace Hero21Core
                 //armEffortCommands[i] = (double) Utils.Map((double) newCommands[i], 0, 10, -1, 1);
                 armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 5.0;
             }
+
+            Debug.Print("Voltage: "+armEffortCommands[0]+ " "+armEffortCommands[1]+ armEffortCommands[2] + " " + armEffortCommands[3] + " " + armEffortCommands[4] + " " + armEffortCommands[5] + " " + armEffortCommands[6]);
         }
 
 
@@ -358,6 +362,31 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.Position, armHomePositions[3]);
             armAxis5.Set(ControlMode.Position, armHomePositions[4]);
             armAxis6.Set(ControlMode.Position, armHomePositions[5]);
+        }
+
+        private static int Absol(int data)
+        {
+            return (data < 0 ? data * (-1) : data);
+        }
+
+
+        public static bool isPIDRunning(int error)
+        {
+            if (Absol(armAxis1.GetClosedLoopError(0)) > error)
+                return true;
+            else if (Absol(armAxis2.GetClosedLoopError(0)) > error)
+                return true;
+            else if (Absol(armAxis3.GetClosedLoopError(0)) > error)
+                return true;
+            else if (Absol(armAxis4.GetClosedLoopError(0)) > error)
+                return true;
+            else if (Absol(armAxis5.GetClosedLoopError(0)) > error)
+                return true;
+            else if (Absol(armAxis6.GetClosedLoopError(0)) > error)
+                return true;
+            else
+                return false;
+
         }
 
 

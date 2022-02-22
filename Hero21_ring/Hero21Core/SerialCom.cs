@@ -108,7 +108,9 @@ namespace Hero21Core
         {
             armFeedbackMsg = RoboticArm.GetArmFeedback();
             //TODO: Get steering system Feedback string
-            finalFeedbackMsg = "A" + armFeedbackMsg + steeringFeedbackMsg + "B";
+            string isPidRunStr = (RoboticArm.isPIDRunning(5) ? "Y" : "N");
+            finalFeedbackMsg = "A" + armFeedbackMsg + isPidRunStr + "B";
+            Debug.Print(finalFeedbackMsg);
             Write(finalFeedbackMsg);
 
         }
@@ -281,6 +283,7 @@ namespace Hero21Core
                 armCommandsArray[j] = (incomingData[i] * 1000) + (incomingData[i + 1] * 100 + incomingData[i + 2] * 10 + incomingData[i + 3]);
                 
             }
+            DebugClass.LogCustomMsg("Arm position commands are set");
             
         }
 
