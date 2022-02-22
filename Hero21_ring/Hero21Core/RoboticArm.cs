@@ -21,7 +21,7 @@ namespace Hero21Core
         public static TalonSRX armAxis4 = new TalonSRX(4);
         public static TalonSRX armAxis5 = new TalonSRX(5);
         public static TalonSRX armAxis6 = new TalonSRX(6);
-        //private static TalonSRX armGripper = new TalonSRX(7);
+        public static TalonSRX armGripper = new TalonSRX(7);
 
         public const int timeOutMs = 30;
 
@@ -33,7 +33,7 @@ namespace Hero21Core
 
         public static int[] armHomePositions = {2048, 1024, 1024, 81920, 20480, 81920 };
         public static int[] armPositionCommands = new int[armMotorNum];
-        public static double[] armEffortCommands = new double[armMotorNum];
+        public static double[] armEffortCommands = new double[armMotorNum+1];
 
         /* 
          * These mapping coefficients are used to convert encoder ticks into meaningful integers
@@ -54,6 +54,7 @@ namespace Hero21Core
             armAxis4.ConfigFactoryDefault();         
             armAxis5.ConfigFactoryDefault();
             armAxis6.ConfigFactoryDefault();
+            armGripper.ConfigFactoryDefault();
             /*
            armGripper.ConfigFactoryDefault();
           */
@@ -154,7 +155,7 @@ namespace Hero21Core
             armAxis4.SelectProfileSlot(0, 0);            
             armAxis5.SelectProfileSlot(0, 0);            
             armAxis6.SelectProfileSlot(0, 0);
-            //armGripper.SelectProfileSlot(0, 0);           
+            armGripper.SelectProfileSlot(0, 0);           
             Watchdog.Feed();
         }
 
@@ -162,14 +163,17 @@ namespace Hero21Core
          * This function resets the position sensors data. It can be used to initialize the sensors and 
          * it can also be used to configure the robotic arm physically
          */
-        public static void ResetArmSensors()
+        public static void ResetArmSensors(int[] resetCommands)
         {
-            armAxis1.SetSelectedSensorPosition(armHomePositions[0]);
-            armAxis2.SetSelectedSensorPosition(armHomePositions[1]);           
-            armAxis3.SetSelectedSensorPosition(armHomePositions[2]);            
-            armAxis4.SetSelectedSensorPosition(armHomePositions[3]);            
-            armAxis5.SetSelectedSensorPosition(armHomePositions[4]);
-            armAxis6.SetSelectedSensorPosition(armHomePositions[5]);
+            armAxis1.SetSelectedSensorPosition(resetCommands[0]);
+            armAxis2.SetSelectedSensorPosition(resetCommands[1]);           
+            armAxis3.SetSelectedSensorPosition(resetCommands[2]);            
+            armAxis4.SetSelectedSensorPosition(resetCommands[3]);            
+            armAxis5.SetSelectedSensorPosition(resetCommands[4]);
+            armAxis6.SetSelectedSensorPosition(resetCommands[5]);
+
+            DebugClass.LogCustomMsg("Reset arm sensors");
+
             Watchdog.Feed();
         }
 
@@ -202,6 +206,7 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.Position, ((int)(((double)armPositionCommands[3] / 9999) * 81920 * 2)));            
             armAxis5.Set(ControlMode.Position, ((int)(((double)armPositionCommands[4] / 9999) * 20480 * 2)));
             armAxis6.Set(ControlMode.Position, ((int)(((double)armPositionCommands[5] / 9999) * 81920 * 2)));
+            armGripper.Set(ControlMode.PercentOutput, 0.0);
             Watchdog.Feed();
 
 
@@ -211,7 +216,7 @@ namespace Hero21Core
 
         public static void SetEffortCommand()
         {
-            DebugClass.LogSysCommands(DebugClass.SysDebugModes.voltage,armMotorNum,SerialCom.armCommandsArray);
+            DebugClass.LogSysCommands(DebugClass.SysDebugModes.voltage,armMotorNum+1,SerialCom.armCommandsArray);
 
             armAxis1.Set(ControlMode.PercentOutput, (double) armEffortCommands[0]);
             armAxis2.Set(ControlMode.PercentOutput, (double) armEffortCommands[1]);
@@ -219,6 +224,7 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.PercentOutput, (double) armEffortCommands[3]);
             armAxis5.Set(ControlMode.PercentOutput, (double) armEffortCommands[4]);
             armAxis6.Set(ControlMode.PercentOutput, (double) armEffortCommands[5]);
+            armGripper.Set(ControlMode.PercentOutput, (double) armEffortCommands[6]);
 
             Debug.Print("----------- executing VOLTAGE commands" + armEffortCommands[0].ToString() + armEffortCommands[1].ToString() + armEffortCommands[2].ToString() + armEffortCommands[3].ToString() + armEffortCommands[4].ToString() + armEffortCommands[5].ToString());
 
@@ -267,6 +273,7 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.PercentOutput, 0);
             armAxis5.Set(ControlMode.PercentOutput, 0);
             armAxis6.Set(ControlMode.PercentOutput, 0);
+            armGripper.Set(ControlMode.PercentOutput, 0);
 
             Watchdog.Feed();
         }
@@ -332,7 +339,7 @@ namespace Hero21Core
 
         public static void UpdateVoltageCommands(int[] newCommands)
         {
-            for (int i = 0; i < armMotorNum; i++)
+            for (int i = 0; i < armMotorNum + 1; i++)
             {
                 //armEffortCommands[i] = (double) Utils.Map((double) newCommands[i], 0, 10, -1, 1);
                 armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 5.0;

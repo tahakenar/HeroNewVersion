@@ -41,7 +41,7 @@ namespace Hero21Core
         private static int strPieceLen = 4;                 // string length of each motor info
         private static int commCheckByteIdx = armMsgLen;    // steering will be added
 
-        public static int[] armCommandsArray = new int[RoboticArm.armMotorNum];
+        public static int[] armCommandsArray = new int[RoboticArm.armMotorNum + 1];
         //public static int[] steeringCommandsArray = new int[SteeringSys.armMotorNum];
 
         private static string armFeedbackMsg = "";
@@ -51,11 +51,12 @@ namespace Hero21Core
 
         private static int resetCntTresh = 5;
         private static int positionCmdCntTresh = 25;
-        private static int voltageCmdCntTresh = 7;
+        private static int voltageCmdCntTresh = 8;
 
         private static int startChar = 83;      // S
         private static int finishChar = 70;     // F
         private static int resetChar = 82;      // R
+        private static int absoluteEncChar = 65; // A
         private static int toggleChar;
         private static int homeChar;
 
@@ -181,7 +182,7 @@ namespace Hero21Core
                 incomingData[receiveCounter] = (incASCII) - 48;                    // ASCII to integer conversion
                 receiveCounter++;
             }
-            else if  (CheckFinishCondition(incASCIIPtr))
+            else if  (CheckFinishCondition(incASCIIPtr,finishChar))
             {
 
                 CheckMsgContinuity(receiveCounter - 1);
@@ -197,12 +198,22 @@ namespace Hero21Core
                 receiveFlag = false;
                 
             }
+
+            else if (CheckFinishCondition(incASCIIPtr, absoluteEncChar))
+            {
+                //HandleEncoderCmdException(receiveCounter - 1);
+
+                AssignArmPositionCmds();
+                RoboticArm.ResetArmSensors(armCommandsArray);
+                ResetSerialReadFlags();
+            }
+
             else if (receiveFlag == true && CheckMsgResetChar(incASCIIPtr))
             {
                 resetCounter++;
                 if (resetCounter == resetCntTresh)
                 {
-                    RoboticArm.ResetArmSensors();
+                    RoboticArm.ResetArmSensors(RoboticArm.armHomePositions);
                     Debug.Print("RESET ARM SENSORS");
                     resetCounter = 0;
                 }
@@ -237,17 +248,25 @@ namespace Hero21Core
                 return true;
         }
 
-        private unsafe static bool CheckFinishCondition(int* incomingASCII)
+        private unsafe static bool CheckFinishCondition(int* incomingASCII, int finishTrigChar)
         {
-            if (receiveFlag == true && *incomingASCII == finishChar)
+            if (receiveFlag == true && *incomingASCII == finishTrigChar)
                 return true;
             else
                 return false;
 
         }
 
+        private static void ResetSerialReadFlags()
+        {
+            receiveCounter = 0;
+            noNewMsgCounter = 0;
+            receiveFlag = false;
+        }
+
+
         public static void AssignArmVoltageCmds() {
-            for (int i = 0; i < RoboticArm.armMotorNum; i++)
+            for (int i = 0; i < RoboticArm.armMotorNum + 1; i++)
             {
                 armCommandsArray[i] = incomingData[i];
                 // Debug.Print(incomingData[i].ToString());
