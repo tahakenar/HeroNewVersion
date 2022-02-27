@@ -108,7 +108,7 @@ namespace Hero21Core
         {
             armFeedbackMsg = RoboticArm.GetArmFeedback();
             //TODO: Get steering system Feedback string
-            string isPidRunStr = (RoboticArm.isPIDRunning(5) ? "Y" : "N");
+            string isPidRunStr = (RoboticArm.isPIDRunning() ? "Y" : "N");
             finalFeedbackMsg = "A" + armFeedbackMsg + isPidRunStr + "B";
             Debug.Print(finalFeedbackMsg);
             Write(finalFeedbackMsg);

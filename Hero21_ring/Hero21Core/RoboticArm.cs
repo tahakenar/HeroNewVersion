@@ -34,14 +34,8 @@ namespace Hero21Core
         public static int[] armHomePositions = {2048, 1024, 1024, 81920, 20480, 81920 };
         public static int[] armPositionCommands = new int[armMotorNum];
         public static double[] armEffortCommands = new double[armMotorNum+1];
+        private static int[] prevEncoderData = { 2048, 1024, 1024, 81920, 20480, 81920 };
 
-        /* 
-         * These mapping coefficients are used to convert encoder ticks into meaningful integers
-         * {999 / 4032, 999 / 700 ...}
-         * CAUTION: If you are getting the encoder values --> multiply sensor values with this array
-         *          If you are setting position commands as encoder ticks --> divide the commands using this array
-         */
-        private static double[] armMappingCoefs = { 0.24776786, 1.42714286, 1.665, 0.04065941, 0.04065941, 0.20324707, 0.43945312 };
 
         /*
          * This function factory defaults all talons to prevent unexpected behaviour. It is used to initialize the robotic arm talons
@@ -70,14 +64,6 @@ namespace Hero21Core
             armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
             armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
 
-            //// Seed quadrature positions using pwm feedback
-            //armAxis1.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
-            //armAxis2.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
-            //armAxis3.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 1, timeOutMs);
-            //armAxis1.SetSelectedSensorPosition(armAxis1.GetSelectedSensorPosition(1));
-            //armAxis2.SetSelectedSensorPosition(armAxis2.GetSelectedSensorPosition(1));
-            //armAxis3.SetSelectedSensorPosition(armAxis3.GetSelectedSensorPosition(1));
-
             armAxis4.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);        
             armAxis5.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);            
             armAxis6.ConfigSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, timeOutMs);
@@ -93,19 +79,20 @@ namespace Hero21Core
         public static void SetAxisSpecificParams()
         {
             // AXIS 1
-            armAxis1.Config_kP(0, 40f, timeOutMs);
-            armAxis1.ConfigClosedloopRamp(0.35f, timeOutMs);
-            //armAxis1.ConfigAllowableClosedloopError(0, 5, timeOutMs);
+            armAxis1.Config_kP(0, 10f, timeOutMs);
+            armAxis1.Config_kI(0, 0.015f, timeOutMs);
+            //armAxis1.ConfigClosedloopRamp(0.452f, timeOutMs);
+            armAxis1.ConfigAllowableClosedloopError(0, 10, timeOutMs);
 
             // AXIS 2
-            armAxis2.Config_kP(0, 80f, timeOutMs);
-            armAxis2.ConfigClosedloopRamp(0.35f, timeOutMs);
-            //armAxis2.ConfigAllowableClosedloopError(0, 8, timeOutMs);
+            armAxis2.Config_kP(0, 40f, timeOutMs);
+            armAxis2.ConfigClosedloopRamp(0.2f, timeOutMs);
+            armAxis2.ConfigAllowableClosedloopError(0, 2, timeOutMs);
 
             // AXIS 3
             armAxis3.Config_kP(0, 20f, timeOutMs);
             armAxis3.ConfigClosedloopRamp(0.5f, timeOutMs);
-            //armAxis3.ConfigAllowableClosedloopError(0, 15, timeOutMs);
+            armAxis3.ConfigAllowableClosedloopError(0, 2, timeOutMs);
 
             // AXIS 4
             armAxis4.Config_kP(0, 10f, timeOutMs);
@@ -120,8 +107,8 @@ namespace Hero21Core
             //armAxis6.ConfigAllowableClosedloopError(0, 20, timeOutMs);
             Watchdog.Feed();
 
-            armGripper.ConfigVoltageCompSaturation(12, timeOutMs);
-            
+            //armGripper.ConfigVoltageCompSaturation(12, timeOutMs);
+           
         }
 
         /*
@@ -226,7 +213,7 @@ namespace Hero21Core
             armAxis4.Set(ControlMode.PercentOutput, (double) armEffortCommands[3]);
             armAxis5.Set(ControlMode.PercentOutput, (double) armEffortCommands[4]);
             armAxis6.Set(ControlMode.PercentOutput, (double) armEffortCommands[5]);
-            armGripper.Set(ControlMode.PercentOutput, (double) armEffortCommands[6]);
+            armGripper.Set(ControlMode.PercentOutput, (double) armEffortCommands[6] / 2);
 
             Debug.Print("----------- executing VOLTAGE commands" + armEffortCommands[0].ToString() + armEffortCommands[1].ToString() + armEffortCommands[2].ToString() + armEffortCommands[3].ToString() + armEffortCommands[4].ToString() + armEffortCommands[5].ToString() + armEffortCommands[6].ToString());
 
@@ -286,18 +273,7 @@ namespace Hero21Core
             int[] encoderData = new int[6];
             string[] encoderStr = new string[6];
 
-            /*
-             * 
-            armAxis1.Set(ControlMode.Position, ((int)((armPositionCommands[0] / 999) * 4096)));
-            armAxis2.Set(ControlMode.Position, ((int)((armPositionCommands[1] / 999) * 1024)));
-            armAxis3.Set(ControlMode.Position, ((int)(350 + (armPositionCommands[2] / 999) * 350)));
-            armAxis4.Set(ControlMode.Position, ((int)((armPositionCommands[3] / 999) * 81920)));            
-            armAxis5.Set(ControlMode.Position, ((int)((armPositionCommands[4] / 999) * 20480)));
-            armAxis6.Set(ControlMode.Position, ((int)((armPositionCommands[5] / 999) * 81920)));
-             * 
-             */
             encoderData[0] = armAxis1.GetSelectedSensorPosition();
-            //encoderStr[0] = SerialCom.ConvertIntToSerialPiece((int) ((double)encoderData[0] * 999 / 4096f), 1);
             encoderStr[0] = Utils.Clamp(encoderData[0], 0, 4096).ToString("D4");
             Watchdog.Feed();
 
@@ -325,6 +301,14 @@ namespace Hero21Core
             armFeedback = encoderStr[0] + encoderStr[1] + encoderStr[2] + encoderStr[3] + encoderStr[4] + encoderStr[5];
             //Debug.Print("Encoder feedback: ");
             //Debug.Print(armFeedback);
+            if (HandleTalonKillException(encoderData))
+            {
+                StopArmActuators();
+                ResetArmSensors(prevEncoderData);
+            }
+            else
+                AssignPrevEncoderData(encoderData);
+
             return armFeedback;
         }
 
@@ -343,7 +327,6 @@ namespace Hero21Core
         {
             for (int i = 0; i < armMotorNum + 1; i++)
             {
-                //armEffortCommands[i] = (double) Utils.Map((double) newCommands[i], 0, 10, -1, 1);
                 armEffortCommands[i] = (((double) newCommands[i]) - 5.0)/ 5.0;
             }
 
@@ -370,25 +353,45 @@ namespace Hero21Core
         }
 
 
-        public static bool isPIDRunning(int error)
+        public static bool isPIDRunning()
         {
-            if (Absol(armAxis1.GetClosedLoopError(0)) > error)
+            if (Absol(armAxis1.GetClosedLoopError(0)) > 10)
                 return true;
-            else if (Absol(armAxis2.GetClosedLoopError(0)) > error)
+            else if (Absol(armAxis2.GetClosedLoopError(0)) > 15)
                 return true;
-            else if (Absol(armAxis3.GetClosedLoopError(0)) > error)
+            else if (Absol(armAxis3.GetClosedLoopError(0)) > 25)
                 return true;
-            else if (Absol(armAxis4.GetClosedLoopError(0)) > error)
+            else if (Absol(armAxis4.GetClosedLoopError(0)) > 60)
                 return true;
-            else if (Absol(armAxis5.GetClosedLoopError(0)) > error)
+            else if (Absol(armAxis5.GetClosedLoopError(0)) > 60)
                 return true;
-            else if (Absol(armAxis6.GetClosedLoopError(0)) > error)
+            else if (Absol(armAxis6.GetClosedLoopError(0)) > 6*10)
                 return true;
             else
                 return false;
 
         }
 
+        private static void AssignPrevEncoderData(int[] encoderData)
+        {
+            for (int i = 0; i < armMotorNum; i++)
+            {
+                prevEncoderData[i] = encoderData[i];
+            }
+        }
+
+        /*
+         * Returns true if any corrupted data (0000 in our case) from encoder is detected 
+         */
+        private static bool HandleTalonKillException(int[] encoderData)
+        {
+            for (int i = 0; i < armMotorNum; i++)
+            {
+                if (encoderData[i] == 0)
+                    return true;
+            }
+            return false;
+        }
 
     }
 }
