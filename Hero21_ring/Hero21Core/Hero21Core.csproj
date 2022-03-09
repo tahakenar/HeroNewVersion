@@ -78,19 +78,5 @@
     <Reference Include="Microsoft.SPOT.TinyCore" />
     <Reference Include="Microsoft.SPOT.Touch" />
     <Reference Include="Microsoft.SPOT.Update" />
-    <Reference Include="Microsoft.SPOT.Wireless.IEEE_802_15_4" />
-    <Reference Include="Microsoft.SPOT.Wireless.IEEE_802_15_4.Mac" />
-    <Reference Include="Microsoft.SPOT.Wireless.IEEE_802_15_4.Phy" />
-    <Reference Include="Microsoft.SPOT.Wireless.IEEE_802_15_4.Phy.CC2420" />
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System" />
-    <Reference Include="System.Ftp" />
-    <Reference Include="System.Http" />
-    <Reference Include="System.IO" />
-    <Reference Include="System.Net.Security" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Text.RegularExpressions" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Legacy" />
   </ItemGroup>
 </Project>
