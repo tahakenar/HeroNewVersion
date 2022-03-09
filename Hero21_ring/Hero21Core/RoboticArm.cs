@@ -188,10 +188,15 @@ namespace Hero21Core
         public static void SetPositionCommand()
         {
             DebugClass.LogSysCommands(DebugClass.SysDebugModes.position,armMotorNum,armPositionCommands);
+            double maxFeedForward = 0.25;
+
+            // This is the angle of 2nd and 3rd joint combined. 0 radians corresponds to where the arm is perpendicular to the ground. 
+            double currentAngle = ((double)prevEncoderData[1] / 2048.0 + (double)prevEncoderData[1] / 2048.0 - 1) * System.Math.PI;
 
             armAxis1.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[0],0,4096));
             armAxis2.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[1],512,1536));
-            armAxis3.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[2],512,1024+512));
+            armAxis3.Set(ControlMode.Position, Utils.Clamp(armPositionCommands[2],512,1024+512),
+                                DemandType.ArbitraryFeedForward, maxFeedForward * System.Math.Cos(currentAngle));
             armAxis4.Set(ControlMode.Position, ((int)(((double)armPositionCommands[3] / 9999) * 81920 * 2)));            
             armAxis5.Set(ControlMode.Position, ((int)(((double)armPositionCommands[4] / 9999) * 20480 * 2)));
             armAxis6.Set(ControlMode.Position, ((int)(((double)armPositionCommands[5] / 9999) * 81920 * 2)));
